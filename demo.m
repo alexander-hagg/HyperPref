@@ -1,21 +1,19 @@
 clear;clc;
 %% Configuration
-addpath('.');       % Set path to all modules
+addpath('.'); % Set path to all modules
 DOF = 16;DOMAIN = 'catmullRom';                 % Degrees of freedom, Catmull-Rom spline domain
 d = domain(DOF);                                % Domain configuration
 p = defaultParamSet;                            % Base Quality Diversity (QD) configuration (MAP-Elites)
 m = cfgLatentModel('data/workdir',d.resolution);% VAE configuration
 
 poemCfg = poemParamSet(p,m);                    % Configure POEM ("Phenotypic niching based Optimization by Evolving a Manifold")
-poemCfg.numInitSamples = p.numInitSamples;      
 poemCfg.categorize = @(geno,pheno,p,d) predictFeatures(pheno,p.model);  % Anonymous function ptr to phenotypic categorization function (= VAE)
-poemCfg.numIterations = 1;                      % Set number of iterations
 
 %% Initialize Experiment
 % Initialize solution set using space filling Sobol sequence in genetic
 % space
 sobSequence = scramble(sobolset(d.dof,'Skip',1e3),'MatousekAffineOwen');  sobPoint = 1;
-initSamples = range(d.ranges').*sobSequence(sobPoint:(sobPoint+p.numInitSamples)-1,:)+d.ranges(:,1)';
+initSamples = range(d.ranges').*sobSequence(sobPoint:(sobPoint+poemCfg.map.numInitSamples)-1,:)+d.ranges(:,1)';
 [fitness,polygons] = fitfun(initSamples,d);
 
 %% Run POEM's first iteration
@@ -41,7 +39,7 @@ showPhenotype(genes,d, [], bins,colors);
 
 %% Perturb selected shapes
 newSamples = genes(selectionIDs,:);
-nNewPerSelected = ceil(p.numInitSamples./length(selectionIDs));
+nNewPerSelected = ceil(poemCfg.map.numInitSamples./length(selectionIDs));
 for i=1:length(selectionIDs)
     newSampleMutations = 0.1 * randn(nNewPerSelected,d.dof);
     newSamples = [newSamples; genes(selectionIDs(i),:) + newSampleMutations];

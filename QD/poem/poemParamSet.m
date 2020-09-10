@@ -5,8 +5,8 @@ config.map                           = mapDefaults;
 config.model                         = AEDefaults;
 
 config.retryInvalid                  = true;
-config.numIterations                 = 2;
-%config.numInitSamples                = 32;
+config.numIterations                 = 1;
+config.map.numInitSamples            = 32;
 
 % Visualization and data management
 config.display.illu              = false;

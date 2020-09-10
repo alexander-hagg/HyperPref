@@ -27,34 +27,32 @@ d.nGPUs = 1; if nargin > 2; d.nGPUs = varargin{2}; end
 
 
 % FFD base shape (circle)
-t = 0:2*pi/(d.dof/2):2*pi; t(end) = [];
-x1 = 0.5*cos(t); y1 = 0.5*sin(t);
-d.base = [x1,y1];
-d.getPhenotype = @(genomes) getPhenotypeFFD(genomes,d.base);
+t                                   = 0:2*pi/(d.dof/2):2*pi; t(end) = [];
+x1                                  = 0.5*cos(t); y1 = 0.5*sin(t);
+d.base                              = [x1,y1];
+d.getPhenotype                      = @(genomes) getPhenotypeFFD(genomes,d.base);
 
 % Set domain ranges
-axialBoundAdaptation = 0.1; %0.01
-radialBoundAdaptation = 0.25; %0.25
-d.ranges(:,1) = [axialBoundAdaptation*ones(d.dof/2,1);-radialBoundAdaptation*pi*ones(d.dof/2,1)];
-d.ranges(:,2) = [ ones(d.dof/2,1); radialBoundAdaptation*pi*ones(d.dof/2,1)];
-d.validate        = 'validate'; % Validation function that is called when creating new solutions. Can contain any constraints.
+axialBoundAdaptation                = 0.1;
+radialBoundAdaptation               = 0.25;
+d.ranges(:,1)                       = [axialBoundAdaptation*ones(d.dof/2,1);-radialBoundAdaptation*pi*ones(d.dof/2,1)];
+d.ranges(:,2)                       = [ ones(d.dof/2,1); radialBoundAdaptation*pi*ones(d.dof/2,1)];
+d.validate                          = 'validate'; % Validation function that is called when creating new solutions. Can contain any constraints.
 disp(['Parameter Bounds: ' num2str(radialBoundAdaptation) ' / ' num2str(axialBoundAdaptation)]);
 
-d.resolution = 64;
-d.phenoDistMult = 30; % Increase distance between shapes when visualizing
+d.resolution                        = 64;
+d.phenoDistMult                     = 30; % Increase distance between shapes when visualizing
 
 %% Misc
 d.flipMap = true;
-d.projectdir = ['/home/' getenv('USER') '/archetype/'];
-d.workdir = ['/scratch/ahagg2s/ARCHETYPE/workfolderCLUSTER/'];
 d.simStartID = 1;
 
 %% Categorization
-d.featureLabels             = {'VAE 1','VAE 2'};
+d.featureLabels                     = {'VAE 1','VAE 2'};
 
 %% Fitness function (generic symmetry of shapes)
-d.fitnessRange              = [0 1];
-FITNESSFUNCTION             = 'symmetry';  rmpath(genpath('domain/catmullRom/fitnessFunctions')); addpath(genpath(['domain/catmullRom/fitnessFunctions/' FITNESSFUNCTION]));
-d.selectPenalty             = 'relativeDistanceOnlyPenalizeConstraintViolation'; %'inverseDistance' 'relativeDistance' 'relativeDistanceOnlyPenalizeConstraintViolation'
+d.fitnessRange                      = [0 1];
+FITNESSFUNCTION                     = 'symmetry';  rmpath(genpath('domain/catmullRom/fitnessFunctions')); addpath(genpath(['domain/catmullRom/fitnessFunctions/' FITNESSFUNCTION]));
+d.selectPenalty                     = 'relativeDistanceOnlyPenalizeConstraintViolation';
 
 %------------- END CODE --------------

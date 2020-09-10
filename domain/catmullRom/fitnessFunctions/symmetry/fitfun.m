@@ -71,20 +71,11 @@ else
     deselectionDistances = min(phenoDistToDeselection,[],2);
 
     relativeSelectionDistance = selectionDistances./(selectionDistances+deselectionDistances);
-    if strcmp(d.selectPenalty,'none')
-        % No constraints
-        selectionFitness = ones(size(relativeSelectionDistance,1),1);
-    elseif strcmp(d.selectPenalty,'inverseDistance')
-        % Calculate fitness from selection distances
-        selectionFitness = 1./(1+selectionDistances);
-    elseif strcmp(d.selectPenalty,'relativeDistance')
-        selectionFitness = 1-relativeSelectionDistance;
-    elseif strcmp(d.selectPenalty,'relativeDistanceOnlyPenalizeConstraintViolation')
-        penalty = relativeSelectionDistance;
-        % Violation: relativeSelectionDistance > 0.5
-        penalty(penalty < 0.5) = 0.5;    
-        selectionFitness = 1-(penalty - 0.5)*2;
-    end
+    penalty = relativeSelectionDistance;
+    % Violation: relativeSelectionDistance > 0.5
+    penalty(penalty < 0.5) = 0.5;    
+    selectionFitness = 1-(penalty - 0.5)*2;
+
     fitness = symmetryFitness .* selectionFitness;
     rawFitness = [symmetryFitness,selectionFitness];
 end
