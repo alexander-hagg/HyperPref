@@ -97,6 +97,8 @@ if size(model.latent,1) > 2
     [coeff, score, latent, tsquared, explained] = pca(model.latent');
     model.latent = score(:,1:2);
     model.pcaCoeff = coeff(:,1:2);
+else
+    model.latent = model.latent';
 end
 
 [model.latent,model.normalization] = mapminmax(model.latent',0,1);

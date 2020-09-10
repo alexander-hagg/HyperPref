@@ -11,8 +11,8 @@ function config = cfgLatentModel(workDir,resolution, varargin)
 lossFunction                  = 'default';           % default binaryCrossEntropy
 rmpath(genpath('latentmodels/VAE/lossFunctions')); addpath(genpath(['latentmodels/VAE/lossFunctions/loss_' lossFunction]));
 mkdir(workDir);
-cfg                         = 'convDefault'; %convDefault convSmall
-latentDim                     = 5;
+cfg                             = 'convDefault';
+latentDim                       = 2;
 if nargin > 2
     latentDim = varargin{1};
     disp(['Latent dims: ' int2str(latentDim)]);
