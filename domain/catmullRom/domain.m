@@ -52,12 +52,9 @@ d.simStartID = 1;
 %% Categorization
 d.featureLabels             = {'VAE 1','VAE 2'};
 
-%% Fitness function
+%% Fitness function (generic symmetry of shapes)
 d.fitnessRange              = [0 1];
-% pointSymmetry pointAsymmetry
-% uiCircle uiLarge uiTriangle uiCircleTriangle uiCircleTriangleOblong
-% user zeroFitness
-FITNESSFUNCTION             = 'pointSymmetry';  rmpath(genpath('domain/catmullRom/fitnessFunctions')); addpath(genpath(['domain/catmullRom/fitnessFunctions/' FITNESSFUNCTION]));
-d.selectPenalty = 'inverseDistance'; %'inverseDistance' 'relativeDistance' 'relativeDistanceOnlyPenalizeConstraintViolation'
+FITNESSFUNCTION             = 'symmetry';  rmpath(genpath('domain/catmullRom/fitnessFunctions')); addpath(genpath(['domain/catmullRom/fitnessFunctions/' FITNESSFUNCTION]));
+d.selectPenalty             = 'relativeDistanceOnlyPenalizeConstraintViolation'; %'inverseDistance' 'relativeDistance' 'relativeDistanceOnlyPenalizeConstraintViolation'
 
 %------------- END CODE --------------

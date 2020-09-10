@@ -16,10 +16,10 @@ function p = defaultParamSet(varargin)
 %------------- BEGIN CODE --------------
 
 p.numInitSamples            = 2^5;      % number of initial samples
-p.nGens                     = 2^11;       % number of generations
+p.nGens                     = 2^8;       % number of generations
 p.nChildren                 = 2^5;      % number of children per generation
 p.mutSigma                  = 0.1;      % mutation drawn from Gaussian distribution with this \sigma
-p.featureResolution         = [30,30];  % Resolution of the map (in cells per dimension). Keep it square
+p.featureResolution         = [20,20];  % Resolution of the map (in cells per dimension). Keep it square
 p.extraMapValues            = {}; % extra map values used in map struct
 p.convergeLimit             = 0.05;
 p.crossover                 = false;

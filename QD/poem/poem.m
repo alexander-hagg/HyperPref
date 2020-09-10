@@ -7,7 +7,6 @@ function [map,configs,stats] = poem(observations,phenotypes,fitness,p,d,varargin
 % email: alexander.hagg@h-brs.de
 % Nov 2019; Last revision: 12-Nov-2019
 
-nSamples = size(observations,1);
 p.map.categorize = p.categorize;    
     
 if p.display.illu
@@ -20,7 +19,8 @@ end
 
 for iter=1:p.numIterations
     
-    % 1. Train AE
+    % 1. Train VAE
+    disp('Training latent model');
     p.map.model = trainFeatures(phenotypes,p.model);
     stats.models{iter} = p.map.model;
     
@@ -37,12 +37,14 @@ for iter=1:p.numIterations
     configs{iter} = p;
     
     % 2. Illuminate with QD
+    disp('Illuminate latent space with QD');
     map = createMap(d, p.map);    
     [replaced, replacement] = nicheCompete(observations,fitness,map,d,p.map,features);
     map = updateMap(replaced,replacement,map,fitness,observations,features);
     map = illuminate(map,p.map,d,p.model);
     
     % 3. Select new model members
+    disp('Select new members');
     candidates = reshape(map.genes,[],d.dof);
     candidates(all(isnan(candidates)'),:) = [];
     [fitness,phenotypes] = fitfun(candidates,d);
@@ -52,19 +54,11 @@ for iter=1:p.numIterations
     observations = candidates;
     
     % 4. Statistics
+    disp('Get statistics');    
     stats.fitness.mean(iter) = nanmean(map.fitness(:)); stats.fitness.median(iter) = nanmedian(map.fitness(:)); stats.fitness.std(iter) = nanstd(map.fitness(:)); stats.fitness.total(iter) = nansum(map.fitness(:));
     stats.elites.number(iter) = sum(~isnan(map.fitness(:)));
     %stats.model.trainingLosses(iter,:) = p.map.model.losses;
     stats.maps{iter} = map;
-    
-    if strcmp(p.selectionMethod,'ascend') || strcmp(p.selectionMethod,'descend')
-        [~,order] = sort(fitness,p.selectionMethod);
-        order = order(1:ceil(p.selectionPerc*numel(order)));
-        disp(['Selecting (' int2str(ceil(p.selectionPerc*numel(order))) ') of ' int2str(numel(order)) ' candidates']);
-        observations = observations(order,:);
-        fitness = fitness(order);
-        phenotypes = phenotypes(order);
-    end
     
     if p.display.illu
         features = p.categorize(observations,phenotypes,p.map,d); 
@@ -80,7 +74,8 @@ for iter=1:p.numIterations
 end
 
 
-% 1. Train final AE
+% 1. Train final VAE
+disp('Train final VAE model');  
 p.map.model = trainFeatures(phenotypes,p.model);
 stats.models{iter+1} = p.map.model;
 features = p.categorize(observations,phenotypes,p.map,d);

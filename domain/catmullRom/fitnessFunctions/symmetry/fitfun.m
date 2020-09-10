@@ -30,8 +30,7 @@ end
 
 
 [polygons] = d.getPhenotype(genomes);
-% Get features
-features = predictFeatures(polygons,d.userModel);
+
 
 rawFitness = zeros(length(polygons),1);
 
@@ -53,42 +52,46 @@ end
 
 symmetryFitness = 1./(1 + rawFitness);
 
-% Get phenotypic distances to user selection
-phenoDistToSelection = pdist2(features,d.selectedShapes);
-phenoDistToDeselection = pdist2(features,d.deselectedShapes);
 
-% Get total distance to entire selection
-% Prefer solutions that are "in between" solutions rather than the ones
-% only close to one of the selected solutions
-selectionDistances = min(phenoDistToSelection,[],2);
-deselectionDistances = min(phenoDistToDeselection,[],2);
+% Involve the user selection only if it exists as a field in the d struct
+if ~exist('d.selectedShapes','var') || isempty(d.selectedShapes)
+    fitness = symmetryFitness;
+    rawFitness = symmetryFitness;
+else
+    % Get features
+    features = predictFeatures(polygons,d.userModel);
+    % Get phenotypic distances to user selection
+    phenoDistToSelection = pdist2(features,d.selectedShapes);
+    phenoDistToDeselection = pdist2(features,d.deselectedShapes);
+    
+    % Get total distance to entire selection
+    % Prefer solutions that are "in between" solutions rather than the ones
+    % only close to one of the selected solutions
+    selectionDistances = min(phenoDistToSelection,[],2);
+    deselectionDistances = min(phenoDistToDeselection,[],2);
 
-
-relativeSelectionDistance = selectionDistances./(selectionDistances+deselectionDistances);
-if strcmp(d.selectPenalty,'none')
-    % No constraints
-    selectionFitness = ones(size(relativeSelectionDistance,1),1);
-elseif strcmp(d.selectPenalty,'inverseDistance')
-    % Calculate fitness from selection distances
-    selectionFitness = 1./(1+selectionDistances);
-elseif strcmp(d.selectPenalty,'relativeDistance')
-    selectionFitness = 1-relativeSelectionDistance;
-elseif strcmp(d.selectPenalty,'relativeDistanceOnlyPenalizeConstraintViolation')
-    penalty = relativeSelectionDistance;
-    % Violation: relativeSelectionDistance > 0.5
-    penalty(penalty < 0.5) = 0.5;    
-    selectionFitness = 1-(penalty - 0.5)*2;
+    relativeSelectionDistance = selectionDistances./(selectionDistances+deselectionDistances);
+    if strcmp(d.selectPenalty,'none')
+        % No constraints
+        selectionFitness = ones(size(relativeSelectionDistance,1),1);
+    elseif strcmp(d.selectPenalty,'inverseDistance')
+        % Calculate fitness from selection distances
+        selectionFitness = 1./(1+selectionDistances);
+    elseif strcmp(d.selectPenalty,'relativeDistance')
+        selectionFitness = 1-relativeSelectionDistance;
+    elseif strcmp(d.selectPenalty,'relativeDistanceOnlyPenalizeConstraintViolation')
+        penalty = relativeSelectionDistance;
+        % Violation: relativeSelectionDistance > 0.5
+        penalty(penalty < 0.5) = 0.5;    
+        selectionFitness = 1-(penalty - 0.5)*2;
+    end
+    fitness = symmetryFitness .* selectionFitness;
+    rawFitness = [symmetryFitness,selectionFitness];
 end
-
-fitness = symmetryFitness .* selectionFitness;
 
 % Limit fitness between 0 and 1
 fitness(fitness>1) = 1;
 fitness(fitness<0) = 0;
-
-rawFitness = [symmetryFitness,selectionFitness];
-
-
 
 end
 

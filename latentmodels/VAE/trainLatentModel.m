@@ -5,7 +5,7 @@ function model = trainLatentModel(model,data,numEpochs,maxBatchSize,learnRate)
 encoderNet = dlnetwork(model.encoderLG);
 decoderNet = dlnetwork(model.decoderLG);
 
-executionEnvironment = "gpu"; %auto cpu gpu
+executionEnvironment = "auto"; %auto cpu gpu
 
 numTrainImages = data.trainStore.NumObservations;
 

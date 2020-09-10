@@ -1,4 +1,4 @@
-function m = cfgLatentModel(workDir,resolution, varargin)
+function config = cfgLatentModel(workDir,resolution, varargin)
 %CFGLATENTMODEL Configuration of Variational Autoencoder
 %
 % Author: Alexander Hagg
@@ -19,7 +19,7 @@ end
 
 numFilters                    = 8;
 trainPerc                     = 1.00;
-numEpochs                     = 500;
+numEpochs                     = 300;
 maxBatchSize                  = 128;
 learnRate                     = 1e-3;
 
@@ -35,10 +35,10 @@ if nargin > 4
     disp(['stride: ' int2str(stride)]);
 end
 
-m                             = feval(cfg,latentDim,resolution,numFilters,filterSize,stride);
-m.predict                     = @(phenotypes,m) getLatent(phenotypes,m.model)';
-m.uncertainty                 = @(genomes,latent,manifold,getPhenotypes) getReconstructionError(genomes,latent,manifold,getPhenotype);
-m.train                       = @(phenotypes) trainLatentModel(m,getDataPoly(phenotypes,workDir,resolution,trainPerc),numEpochs,maxBatchSize,learnRate);
+config                             = feval(cfg,latentDim,resolution,numFilters,filterSize,stride);
+config.predict                     = @(phenotypes,m) getLatent(phenotypes,m.model)';
+config.uncertainty                 = @(genomes,latent,manifold,getPhenotypes) getReconstructionError(genomes,latent,manifold,getPhenotype);
+config.train                       = @(phenotypes) trainLatentModel(config,getDataPoly(phenotypes,workDir,resolution,trainPerc),numEpochs,maxBatchSize,learnRate);
 
 
 end
