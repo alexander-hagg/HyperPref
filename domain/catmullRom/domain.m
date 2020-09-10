@@ -40,8 +40,7 @@ d.ranges(:,2)                       = [ ones(d.dof/2,1); radialBoundAdaptation*p
 d.validate                          = 'validate'; % Validation function that is called when creating new solutions. Can contain any constraints.
 disp(['Parameter Bounds: ' num2str(radialBoundAdaptation) ' / ' num2str(axialBoundAdaptation)]);
 
-d.resolution                        = 64;
-d.phenoDistMult                     = 30; % Increase distance between shapes when visualizing
+d.resolution                        = 128;
 
 %% Misc
 d.flipMap = true;

@@ -1,4 +1,4 @@
-function [figHandle,pgon,ctlPts] = showPhenotype(genomes,d,varargin)
+function [figHandle,pgon,ctlPts] = showPhenotype(genomes,d,phenoDistMult,varargin)
 %showPhenotype - Either show an example phenotype, or, when given, show
 %                multiple phenotypes that are positioned on predefined placement positions.
 %                Yes, this visualization script does too many things at the same time.
@@ -24,7 +24,7 @@ function [figHandle,pgon,ctlPts] = showPhenotype(genomes,d,varargin)
 nShapes = size(genomes,1);
 xPos = 0:ceil(sqrt(nShapes))-1; [X,Y] = ndgrid(xPos,xPos);
 placement = [X(:) Y(:)]; placement = placement(1:nShapes,:); 
-if nargin>2
+if nargin>3
     if ~isempty(varargin{1})
         figHandle = varargin{1};
     else
@@ -33,7 +33,7 @@ if nargin>2
 else
     figHandle = figure;
 end
-if nargin>3
+if nargin>4
     if ~isempty(varargin{2})
         placement = varargin{2};
         if size(placement,2) > 2
@@ -44,13 +44,13 @@ if nargin>3
     end
 end
 
-if nargin>4
+if nargin>5
     clrs = varargin{3};
 else
     clrs = [0 0 0];
 end
 
-if nargin>5
+if nargin>6
     faceAlpha = varargin{4};
 else
     faceAlpha = ones(nShapes,1);
@@ -59,7 +59,7 @@ end
 
 %%
 placement(:,2) = -placement(:,2);
-placement =  d.phenoDistMult * mapminmax(placement',0,1)';
+placement =  phenoDistMult * mapminmax(placement',0,1)';
 [pgon,ctlPts] = d.getPhenotype(genomes);
 figure(figHandle);
 hold('off');

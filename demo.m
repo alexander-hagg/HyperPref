@@ -25,7 +25,7 @@ disp('HyperPref Step 1 Done');
 load([DOMAIN 'step1.mat']);
 [genes,fitness,features,bins] = extractMap(map{1});
 
-selectionIDs = [20, 25]; % Selected shapes (IDs in QD archive, see figure)
+selectionIDs = [16 24 25 26]; % Selected shapes (IDs in QD archive, see figure)
 d.userModel = stats{1}.models{end}; % Save user model to use as constraint model
 
 phenotypes = d.getPhenotype(genes);
@@ -35,7 +35,7 @@ d.deselectedShapes = features; d.deselectedShapes(selectionIDs,:) = [];
 
 % Visualization
 cmap = [0 0 0; 0 0 1]; colors = repmat(cmap(1,:),size(genes,1),1); colors(selectionIDs,:) = repmat(cmap(2,:),numel(selectionIDs),1);
-showPhenotype(genes,d, [], bins,colors);
+showPhenotype(genes,d, p.featureResolution(1),[], bins,colors); title('1st Iteration Result including Selection (blue)');
 
 %% Perturb selected shapes
 newSamples = genes(selectionIDs,:);
@@ -45,13 +45,13 @@ for i=1:length(selectionIDs)
     newSamples = [newSamples; genes(selectionIDs(i),:) + newSampleMutations];
 end
 
-showPhenotype(newSamples,d,[]);title('Injected Shapes');
+showPhenotype(newSamples,d,p.featureResolution(1),[]); title('Injected Perturbations of Selection');
 
 %% Run POEM's second iteration based on the user selection
 [newSamplesfitness,newSamplespolygons] = fitfun(newSamples,d); % Recalculate fitness! (User selection influences fitness values)
 [map{2}, config{2}, stats{2}] = poem(newSamples,newSamplespolygons,newSamplesfitness,poemCfg,d,2);
 
-close all; clear figs; save([DOMAIN 'step2.mat']);
+save([DOMAIN 'step2.mat']);
 disp('HyperPref Step 2 Done');
 
 
@@ -60,4 +60,4 @@ load([DOMAIN 'step2.mat']);
 [genes,fitness,features,bins] = extractMap(map{2});
 
 % Visualization
-showPhenotype(genes,d); title('2nd Iteration Result after Selection'); axis equal;
+showPhenotype(genes,d,p.featureResolution(1)); title('2nd Iteration Result after Selection'); axis equal;

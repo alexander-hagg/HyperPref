@@ -11,8 +11,13 @@ Nov 2019; Last revision: 10-Sep-2020
 
 # Demo
 
-Run the demo.m script from the root directory of the repository. You can step through a (somewhat user unfriendly) version of HyperPref:
+Run the demo.m script from the root directory of the repository. You can step through a (somewhat user unfriendly) version of HyperPref. Remember that in Matlab you can step through code blocks that are delimted by '%%' using CTRL-ENTER
 
 1. Train a VAE on a random shape set and run QD based on the VAE's 2D latent space
 2. Select shapes (sorry, you will have to manually change the selection IDs, line 30: selectionIDs = [20, 25];)
 3. Retrain the VAE on a set with perturbed variations of the selected shapes and run QD again to get the final result.
+
+# Repository Structure
+
+domain/
+latentmodels/VAE
