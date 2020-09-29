@@ -1,6 +1,8 @@
 # HyperPref
 
-I have removed everything but the bare necessities for HyperPref to run, so you will not be able to reproduce all results from the paper. If you use this code in any publication, please cite:
+HyperPref is a cyclic co-creative process between human and computer, which triggers the user’s intuition about what is possible and is updated according to what the user wants based on their decisions. It combines quality diversity algorithms, a divergent optimization method that can produce many, diverse solutions, with variational autoencoders to both model that diversity as well as the user’s preferences, discovering the preference hypervolume within large search spaces.
+
+I have removed everything but the bare necessities for HyperPref to run, so you will not be able to reproduce all results from the paper. If you use this code in any publication, please do cite:
 
 Hagg, A., Asteroth, A., Bäck, T.: A Deep Dive Into Exploring the Preference Hypervolume. International Conference on Computational Creativity, ICCC 2020.
 
