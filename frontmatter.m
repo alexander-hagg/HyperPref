@@ -1,6 +1,6 @@
 clear;clc;
 %% Configuration
-addpath('.'); % Set path to all modules
+addpath(genpath(pwd))                           % Set path to all modules
 DOF = 16;DOMAIN = 'catmullRom';                 % Degrees of freedom, Catmull-Rom spline domain
 d = domain(DOF);                                % Domain configuration
 p = defaultParamSet;                            % Base Quality Diversity (QD) configuration (MAP-Elites)
@@ -25,12 +25,12 @@ disp('HyperPref Step 1 Done');
 load([DOMAIN 'step1.mat']);
 [genes,fitness,features,bins] = extractMap(map{1});
 
-selectionIDs = [16 24 25 26]; % Selected shapes (IDs in QD archive, see figure)
+selectionIDs = [1020:1030,1070:1080,1120:1130]; % Selected shapes (IDs in QD archive, see figure)
 d.userModel = stats{1}.models; % Save user model to use as constraint model
 
 phenotypes = d.getPhenotype(genes);
 features = predictFeatures(phenotypes,d.userModel);
-d.selectedShapes = features(selectionIDs,:);
+d.selectedShapes = features(selectionIDs,:); 
 d.deselectedShapes = features; d.deselectedShapes(selectionIDs,:) = [];
 
 % Visualization
@@ -41,11 +41,13 @@ showPhenotype(genes,d, p.featureResolution(1),[], bins,colors); title('1st Itera
 newSamples = genes(selectionIDs,:);
 nNewPerSelected = ceil(poemCfg.map.numInitSamples./length(selectionIDs));
 for i=1:length(selectionIDs)
-    newSampleMutations = 0.05 * randn(nNewPerSelected,d.dof);
+    newSampleMutations = 0.005 * randn(nNewPerSelected,d.dof);
     newSamples = [newSamples; genes(selectionIDs(i),:) + newSampleMutations];
 end
 
 [newSamplesfitness,newSamplespolygons] = fitfun(newSamples,d); % Recalculate fitness! (User selection influences fitness values)
+figure(99);plot(sort(newSamplesfitness));hold on;
+
 showPhenotype(newSamples,d,p.featureResolution(1),[]); title('Injected Perturbations of Selection');
 
 %% Run POEM's second iteration based on the user selection
@@ -58,6 +60,9 @@ disp('HyperPref Step 2 Done');
 %% Reload and extract results of second iteration and visualize
 load([DOMAIN 'step2.mat']);
 [genes,fitness,features,bins] = extractMap(map{2});
-
+%fitfun(genes,d)
 % Visualization
 showPhenotype(genes,d,p.featureResolution(1)); title('2nd Iteration Result after Selection'); axis equal;
+
+
+
