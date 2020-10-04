@@ -54,7 +54,7 @@ symmetryFitness = 1./(1 + rawFitness);
 
 
 % Involve the user selection only if it exists as a field in the d struct
-if ~exist('d.selectedShapes','var') || isempty(d.selectedShapes)
+if ~isfield(d,'userModel') || isempty(d.userModel)
     fitness = symmetryFitness;
     rawFitness = symmetryFitness;
 else
