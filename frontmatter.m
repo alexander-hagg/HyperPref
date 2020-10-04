@@ -25,7 +25,7 @@ disp('HyperPref Step 1 Done');
 load([DOMAIN 'step1.mat']);
 [genes,fitness,features,bins] = extractMap(map{1});
 
-selectionIDs = [1020:1030,1070:1080,1120:1130]; % Selected shapes (IDs in QD archive, see figure)
+selectionIDs = [1:50]; % Selected shapes (IDs in QD archive, see figure)
 d.userModel = stats{1}.models; % Save user model to use as constraint model
 
 phenotypes = d.getPhenotype(genes);
@@ -41,7 +41,7 @@ showPhenotype(genes,d, p.featureResolution(1),[], bins,colors); title('1st Itera
 newSamples = genes(selectionIDs,:);
 nNewPerSelected = ceil(poemCfg.map.numInitSamples./length(selectionIDs));
 for i=1:length(selectionIDs)
-    newSampleMutations = 0.005 * randn(nNewPerSelected,d.dof);
+    newSampleMutations = 0.02 * randn(nNewPerSelected,d.dof);
     newSamples = [newSamples; genes(selectionIDs(i),:) + newSampleMutations];
 end
 
