@@ -54,30 +54,34 @@ symmetryFitness = 1./(1 + rawFitness);
 
 
 % Involve the user selection only if it exists as a field in the d struct
-if ~isfield(d,'userModel') || isempty(d.userModel)
+if ~isfield(d.selection,'models') || isempty(d.selection.models)
     fitness = symmetryFitness;
     rawFitness = symmetryFitness;
 else
-    % Get features
-    features = predictFeatures(polygons,d.userModel);
-    % Get phenotypic distances to user selection
-    phenoDistToSelection = pdist2(features,d.selectedShapes);
-    phenoDistToDeselection = pdist2(features,d.deselectedShapes);
-    
-    % Get total distance to entire selection
-    % Prefer solutions that are "in between" solutions rather than the ones
-    % only close to one of the selected solutions
-    selectionDistances = min(phenoDistToSelection,[],2);
-    deselectionDistances = min(phenoDistToDeselection,[],2);
-
-    relativeSelectionDistance = selectionDistances./(selectionDistances+deselectionDistances);
-    penalty = relativeSelectionDistance;
-    % Violation: relativeSelectionDistance > 0.5
-    penalty(penalty < 0.5) = 0.5;    
-    selectionFitness = 1-(penalty - 0.5)*2;
-
-    fitness = symmetryFitness .* selectionFitness;
-    rawFitness = [symmetryFitness,selectionFitness];
+    fitness = symmetryFitness;
+    for i=1:length(d.selection.models)
+        % Get features
+        hypersurfaceID = i;
+        features = predictFeatures(polygons,d.selection.models{hypersurfaceID});
+        % Get phenotypic distances to user selection
+        phenoDistToSelection = pdist2(features,d.selection.selected{hypersurfaceID});
+        phenoDistToDeselection = pdist2(features,d.selection.deselected{hypersurfaceID});
+        
+        % Get total distance to entire selection
+        % Prefer solutions that are "in between" solutions rather than the ones
+        % only close to one of the selected solutions
+        selectionDistances = min(phenoDistToSelection,[],2);
+        deselectionDistances = min(phenoDistToDeselection,[],2);
+        
+        relativeSelectionDistance = selectionDistances./(selectionDistances+deselectionDistances);
+        penalty = relativeSelectionDistance;
+        % Violation: relativeSelectionDistance > 0.5
+        penalty(penalty < 0.5) = 0.5;
+        selectionFitness = 1-(penalty - 0.5)*2;
+        
+        fitness = fitness .* selectionFitness;
+    end
+    rawFitness = [fitness,selectionFitness];
 end
 
 % Limit fitness between 0 and 1
