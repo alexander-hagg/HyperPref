@@ -54,7 +54,7 @@ symmetryFitness = 1./(1 + rawFitness);
 
 
 % Involve the user selection only if it exists as a field in the d struct
-if ~isfield(d.selection,'models') || isempty(d.selection.models)
+if ~isfield(d,'selection') || ~isfield(d.selection,'models') || isempty(d.selection.models)
     fitness = symmetryFitness;
     rawFitness = symmetryFitness;
 else
@@ -76,8 +76,10 @@ else
         relativeSelectionDistance = selectionDistances./(selectionDistances+deselectionDistances);
         penalty = relativeSelectionDistance;
         % Violation: relativeSelectionDistance > 0.5
-        penalty(penalty < 0.5) = 0.5;
-        selectionFitness = 1-(penalty - 0.5)*2;
+        %penalty(penalty < 0.5) = 0.5;
+        %selectionFitness = 1-(penalty - 0.5)*2;
+        penalty(penalty>0.5) = 1;
+        selectionFitness = 1 - penalty;
         
         fitness = fitness .* selectionFitness;
     end

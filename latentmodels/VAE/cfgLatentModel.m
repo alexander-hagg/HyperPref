@@ -24,13 +24,13 @@ numEpochs                     = 300;
 maxBatchSize                  = 128;
 learnRate                     = 1e-3;
 
-filterSize                    = 5;
+filterSize                    = 3;
 if nargin > 3
     filterSize = varargin{2};
     disp(['filterSize: ' int2str(filterSize)]);
 end
 
-stride                        = 2;
+stride                        = 1;
 if nargin > 4
     stride = varargin{3};
     disp(['stride: ' int2str(stride)]);

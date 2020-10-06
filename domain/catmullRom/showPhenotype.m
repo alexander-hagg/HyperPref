@@ -1,4 +1,4 @@
-function [figHandle,pgon,ctlPts] = showPhenotype(genomes,d,phenoDistMult,varargin)
+function [axHandle,pgon,ctlPts] = showPhenotype(genomes,d,phenoDistMult,varargin)
 %showPhenotype - Either show an example phenotype, or, when given, show
 %                multiple phenotypes that are positioned on predefined placement positions.
 %                Yes, this visualization script does too many things at the same time.
@@ -26,12 +26,14 @@ xPos = 0:ceil(sqrt(nShapes))-1; [X,Y] = ndgrid(xPos,xPos);
 placement = [X(:) Y(:)]; placement = placement(1:nShapes,:); 
 if nargin>3
     if ~isempty(varargin{1})
-        figHandle = varargin{1};
+        axHandle = varargin{1};
     else
-        figHandle = figure;
+        figure();
+        axHandle = gca;
     end
 else
-    figHandle = figure;
+    figure();
+    axHandle = gca;
 end
 if nargin>4
     if ~isempty(varargin{2})
@@ -61,8 +63,7 @@ end
 placement(:,2) = -placement(:,2);
 placement =  phenoDistMult * mapminmax(placement',0,1)';
 [pgon,ctlPts] = d.getPhenotype(genomes);
-figure(figHandle);
-hold('off');
+hold(axHandle,'off');
 for i=1:nShapes
     % Change placement if necessary
     if isa(pgon{i},'polyshape')
@@ -71,19 +72,19 @@ for i=1:nShapes
             pgon{i}.Vertices = pgon{i}.Vertices + placement(i,:);
         end    
         if size(clrs,1) == nShapes
-            plot(pgon{i},'FaceColor',clrs(i,:),'FaceAlpha',faceAlpha(i),'EdgeAlpha',faceAlpha(i));
+            plot(axHandle,pgon{i},'FaceColor',clrs(i,:),'FaceAlpha',faceAlpha(i),'EdgeAlpha',faceAlpha(i));
         elseif ~isempty(clrs)
-            plot(pgon{i},'FaceColor',clrs(1,:),'FaceAlpha',faceAlpha(i),'EdgeAlpha',faceAlpha(i));
+            plot(axHandle,pgon{i},'FaceColor',clrs(1,:),'FaceAlpha',faceAlpha(i),'EdgeAlpha',faceAlpha(i));
         else
-            plot(pgon{i},'FaceAlpha',faceAlpha(i),'EdgeAlpha',faceAlpha(i));
+            plot(axHandle,pgon{i},'FaceAlpha',faceAlpha(i),'EdgeAlpha',faceAlpha(i));
         end
+        axHandle.Children(1).UserData.ID = i;
     end
-    hold('on');
+    hold(axHandle,'on');
 end
 
-ax = gca;
-ax.XAxis.Visible = false;
-ax.YAxis.Visible = false;
-ax.Color = 'None';
+axHandle.XAxis.Visible = false;
+axHandle.YAxis.Visible = false;
+axHandle.Color = 'None';
 end
 
