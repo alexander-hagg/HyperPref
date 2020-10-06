@@ -18,7 +18,7 @@ if nargin > 2
     disp(['Latent dims: ' int2str(latentDim)]);
 end
 
-numFilters                    = 2;%8
+numFilters                    = 4;%8
 trainPerc                     = 1.00;
 numEpochs                     = 300;
 maxBatchSize                  = 128;

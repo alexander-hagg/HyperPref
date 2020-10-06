@@ -61,7 +61,8 @@ end
 
 %%
 placement(:,2) = -placement(:,2);
-placement =  phenoDistMult * mapminmax(placement',0,1)';
+%placement =  phenoDistMult * mapminmax(placement',0,1)';
+placement =  phenoDistMult * placement;
 [pgon,ctlPts] = d.getPhenotype(genomes);
 hold(axHandle,'off');
 for i=1:nShapes
