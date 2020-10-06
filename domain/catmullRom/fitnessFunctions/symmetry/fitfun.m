@@ -74,12 +74,12 @@ else
         deselectionDistances = min(phenoDistToDeselection,[],2);
         
         relativeSelectionDistance = selectionDistances./(selectionDistances+deselectionDistances);
-        penalty = relativeSelectionDistance;
+        %penalty = relativeSelectionDistance;
         % Violation: relativeSelectionDistance > 0.5
         %penalty(penalty < 0.5) = 0.5;
         %selectionFitness = 1-(penalty - 0.5)*2;
-        penalty(penalty>0.5) = 1;
-        selectionFitness = 1 - penalty;
+        %penalty(penalty>0.5) = 1;
+        selectionFitness = 1 - relativeSelectionDistance;
         
         fitness = fitness .* selectionFitness;
     end

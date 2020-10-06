@@ -5,8 +5,8 @@ config.map                           = mapDefaults;
 config.model                         = AEDefaults;
 config.map.numInitSamples            = 256;
 
+config.mutSelection                  = 0.1;
 config.retryInvalid                  = true;
-config.numIterations                 = 1;
 
 % Visualization and data management
 config.display.illu                 = false;
