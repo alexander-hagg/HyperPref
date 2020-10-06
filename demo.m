@@ -5,56 +5,58 @@ DOF = 16;DOMAIN = 'catmullRom';                 % Degrees of freedom, Catmull-Ro
 d = domain(DOF);                                % Domain configuration
 p = defaultParamSet;                            % Base Quality Diversity (QD) configuration (MAP-Elites)
 m = cfgLatentModel('data/workdir',d.resolution);% VAE configuration
-
-poemCfg = poemParamSet(p,m);                    % Configure POEM ("Phenotypic niching based Optimization by Evolving a Manifold")
-poemCfg.categorize = @(geno,pheno,p,d) predictFeatures(pheno,p.model);  % Anonymous function ptr to phenotypic categorization function (= VAE)
+pm = poemParamSet(p,m);                    % Configure POEM ("Phenotypic niching based Optimization by Evolving a Manifold")
+pm.categorize = @(geno,pheno,p,d) predictFeatures(pheno,p.model);  % Anonymous function ptr to phenotypic categorization function (= VAE)
+hypID = 1;
 
 %% Initialize Experiment
 % Initialize solution set using space filling Sobol sequence in genetic space
 sobSequence = scramble(sobolset(d.dof,'Skip',1e3),'MatousekAffineOwen');  sobPoint = 1;
-initSamples = range(d.ranges').*sobSequence(sobPoint:(sobPoint+poemCfg.map.numInitSamples)-1,:)+d.ranges(:,1)';
+initSamples = range(d.ranges').*sobSequence(sobPoint:(sobPoint+pm.map.numInitSamples)-1,:)+d.ranges(:,1)';
 [fitness,polygons] = fitfun(initSamples,d);
 
 %% Run POEM's first iteration
-[map{1}, config{1}, results{1}] = poem(initSamples,polygons,fitness,poemCfg,d,2);
-save([DOMAIN 'step1.mat']);
+[map{hypID}, config{hypID}, results{hypID}] = poem(initSamples,polygons,fitness,pm,d,2);
+save([DOMAIN '_step1.mat']);
 disp('HyperPref Step 1 Done');
 
 %% Reload and extract results of first iteration and select IDs of shapes
-load([DOMAIN 'step1.mat']);
-[genes,fitness,features,bins] = extractMap(results{1}.maps(2));
+load([DOMAIN '_step1.mat']);
+[genes,fitness,features,bins] = extractMap(results{1}.maps{1});
+% Visualization
+colors = [zeros(size(genes,1),1) fitness zeros(size(genes,1),1)];            
+showPhenotype(genes, d, p.featureResolution(1), [], bins, colors); title('1st Iteration Result');
 
-hypersurfaceID = 1;
-selectionIDs = [1:50]; % Selected shapes (IDs in QD archive, see figure)
-d.selection.models{hypersurfaceID} = results{hypersurfaceID}.models; % Save user model to use as constraint model
+%% Selection
+currentSelection = randi(numel(fitness)); % In this demo, select one random shape
+d.selection.models{hypID} = results{hypID}.models; % Save user model to use as constraint model
 
 phenotypes = d.getPhenotype(genes);
-features = predictFeatures(phenotypes,d.selection.models{hypersurfaceID});
-d.selection.selected{hypersurfaceID} = features(selectionIDs,:); 
-d.selection.deselected{hypersurfaceID} = features; d.selection.deselected{hypersurfaceID}(selectionIDs,:) = [];
+d.selection.selected{hypID} = features(currentSelection,:); 
+d.selection.deselected{hypID} = features; d.selection.deselected{hypID}(currentSelection,:) = [];
 
-% Visualization
-cmap = [0 0 0; 0 0 1]; colors = repmat(cmap(1,:),size(genes,1),1); colors(selectionIDs,:) = repmat(cmap(2,:),numel(selectionIDs),1);
-showPhenotype(genes,d, p.featureResolution(1),[], bins,colors); title('1st Iteration Result including Selection (blue)');
-
-%% Perturb selected shapes
-newSamples = genes(selectionIDs,:);
-nNewPerSelected = ceil(poemCfg.map.numInitSamples./length(selectionIDs));
-for i=1:length(selectionIDs)
-    newSampleMutations = 0.1 * randn(nNewPerSelected,d.dof);
-    newSamples = [newSamples; genes(selectionIDs(i),:) + newSampleMutations];
+hypID = hypID + 1;
+newSamples = genes(currentSelection,:);
+nNewPerSelected = ceil(pm.map.numInitSamples./length(currentSelection));
+% Perturb selected shapes
+for i=1:length(currentSelection)
+    newSampleMutations = pm.mutSelection * randn(nNewPerSelected,d.dof);
+    newSamples = [newSamples; genes(currentSelection(i),:) + newSampleMutations];
 end
 [newSamplesfitness,newSamplespolygons] = fitfun(newSamples,d); % Recalculate fitness! (User selection influences fitness values)
+            
 % figure(99);plot(sort(newSamplesfitness));hold on;
 % showPhenotype(newSamples,d,p.featureResolution(1),[]); title('Injected Perturbations of Selection');
 
 %% Run POEM's second iteration based on the user selection
-[map{2}, config{2}, results{2}] = poem(newSamples,newSamplespolygons,newSamplesfitness,poemCfg,d,2);
-save([DOMAIN 'step2.mat']);
+[map{hypID}, config{hypID}, results{hypID}] = poem(newSamples,newSamplespolygons,newSamplesfitness,pm,d,2);
+save([DOMAIN '_step2.mat']);
 disp('HyperPref Step 2 Done');
 
 %% Reload and extract results of third iteration and visualize
-load([DOMAIN 'step2.mat']);
-[genes,fitness,features,bins] = extractMap(results{2}.maps(2));
-showPhenotype(genes,d,p.featureResolution(1)); title('3rd Iteration Result after Selection'); axis equal;
+load([DOMAIN '_step2.mat']);
+[genes,fitness,features,bins] = extractMap(results{2}.maps{1});
+% Visualization
+colors = [zeros(size(genes,1),1) fitness zeros(size(genes,1),1)];            
+showPhenotype(genes, d, p.featureResolution(1), [], bins, colors); title('1st Iteration Result');
 
