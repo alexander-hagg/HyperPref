@@ -61,7 +61,7 @@ for epoch = 1:numEpochs
         if (executionEnvironment == "auto" && canUseGPU) || executionEnvironment == "gpu"
             XTest = gpuArray(XTest);
         end
-    
+        
         [z, zMean, zLogvar] = sampling(encoderNet, XTest);
         xPred = sigmoid(forward(decoderNet, z));
         [elbo,reconstructionLoss,KL] = ELBOloss(XTest, xPred, zMean, zLogvar, epoch, numEpochs);
@@ -77,6 +77,35 @@ for epoch = 1:numEpochs
         if epoch==1 || mod(epoch,50)==0
             disp("Epoch : " + epoch + ...
                 ". Time taken for epoch = "+ elapsedTime + "s");
+            it=1;
+            data.trainStore.reset;
+            while hasdata(data.trainStore)
+                % Read mini-batch of data.
+                batchDataTable = read(data.trainStore);
+            
+                % Ignore last partial mini-batch of epoch.
+                if size(batchDataTable,1) < miniBatchSize
+                    continue
+                end
+            
+                XBatch = cat(4,batchDataTable.input{:,1});
+                XBatch = dlarray(single(XBatch), 'SSCB');
+            
+                if (executionEnvironment == "auto" && canUseGPU) || executionEnvironment == "gpu"
+                    XBatch = gpuArray(XBatch);
+                end
+            
+            
+                [z, zMean, zLogvar] = sampling(encoderNet, XBatch);
+                xPred = sigmoid(forward(decoderNet, z));
+                [elbo(it),reconstructionLoss(it),KL(it)] = ELBOloss(XBatch, xPred, zMean, zLogvar, epoch, numEpochs);
+                it = it + 1;
+            end
+            disp("Epoch : " + epoch + ...
+                " Mean Training ELBO loss = "+mean(gather(extractdata(elbo)))+ ...
+                " Mean Training reconstruction loss = "+mean(gather(extractdata(reconstructionLoss)))+ ...
+                " Mean Training KL loss = "+mean(gather(extractdata(KL)))+ ...
+                ". Time taken for epoch = "+ elapsedTime + "s")
         end
     end
 end

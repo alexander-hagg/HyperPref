@@ -1,5 +1,5 @@
-function config = cfgLatentModel(workDir,resolution, varargin)
-%CFGLATENTMODEL Configuration of Variational Autoencoder
+function model = cfgLatentModel(workDir,resolution, varargin)
+%CFGLATENTMODEL cfguration of Variational Autoencoder
 %
 % Author: Alexander Hagg
 % Bonn-Rhein-Sieg University of Applied Sciences (HBRS)
@@ -11,36 +11,35 @@ function config = cfgLatentModel(workDir,resolution, varargin)
 lossFunction                  = 'default';           % default binaryCrossEntropy
 rmpath(genpath('latentmodels/VAE/lossFunctions')); addpath(genpath(['latentmodels/VAE/lossFunctions/loss_' lossFunction]));
 mkdir(workDir);
-cfg                             = 'convDefault';
-latentDim                       = 2;
+structure                           = 'convDefault2';
+configuration.latentDim                       = 16;
 if nargin > 2
-    latentDim = varargin{1};
-    disp(['Latent dims: ' int2str(latentDim)]);
+    configuration.latentDim = varargin{1};
+    disp(['Latent dims: ' int2str(configuration.latentDim)]);
 end
 
-numFilters                    = 4;%8
-trainPerc                     = 1.00;
-numEpochs                     = 300;
-maxBatchSize                  = 128;
-learnRate                     = 1e-3;
-
-filterSize                    = 3;
+configuration.numFilters                    = 4;
+configuration.trainPerc                     = 1.00;
+configuration.numEpochs                     = 500;
+configuration.maxBatchSize                  = 128;
+configuration.learnRate                     = 1e-3;
+configuration.filterSize                    = 5;
 if nargin > 3
-    filterSize = varargin{2};
-    disp(['filterSize: ' int2str(filterSize)]);
+    configuration.filterSize = varargin{2};
+    disp(['configuration.filterSize: ' int2str(configuration.filterSize)]);
 end
 
-stride                        = 1;
+configuration.stride                        = 1;
 if nargin > 4
-    stride = varargin{3};
-    disp(['stride: ' int2str(stride)]);
+    configuration.stride = varargin{3};
+    disp(['configuration.stride: ' int2str(configuration.stride)]);
 end
 
-config                             = feval(cfg,latentDim,resolution,numFilters,filterSize,stride);
-config.predict                     = @(phenotypes,m) getLatent(phenotypes,m.model)';
-config.uncertainty                 = @(genomes,latent,manifold,getPhenotypes) getReconstructionError(genomes,latent,manifold,getPhenotype);
-config.train                       = @(phenotypes) trainLatentModel(config,getDataPoly(phenotypes,workDir,resolution,trainPerc),numEpochs,maxBatchSize,learnRate);
-
+model                             = feval(structure,configuration.latentDim,resolution,configuration.numFilters,configuration.filterSize,configuration.stride);
+model.predict                     = @(phenotypes,m) getLatent(phenotypes,m.model)';
+model.uncertainty                 = @(genomes,latent,manifold,getPhenotypes) getReconstructionError(genomes,latent,manifold,getPhenotype);
+model.train                       = @(phenotypes) trainLatentModel(model,getDataPoly(phenotypes,workDir,resolution,configuration.trainPerc),configuration.numEpochs,configuration.maxBatchSize,configuration.learnRate);
+model.configuration               = configuration;
 
 end
 
