@@ -28,7 +28,7 @@ if nargin>2
     if ~isempty(varargin{1})
         figHandle = varargin{1};
     else
-        figHandle = figure;
+        figHandle = figure;figHandle = showPhenotype(genomes,d,varargin)
     end
 else
     figHandle = figure;
