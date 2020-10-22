@@ -6,7 +6,6 @@ d = domain(DOF);                                % Domain configuration
 p = defaultParamSet;                            % Base Quality Diversity (QD) configuration (MAP-Elites)
 m = cfgLatentModel('data/workdir',d.resolution);% VAE configuration
 pm = poemParamSet(p,m);                         % Configure POEM ("Phenotypic niching based Optimization by Evolving a Manifold")
-pm.map.numInitSamples = 128;
 pm.categorize = @(geno,pheno,p,d) predictFeatures(pheno,p.model);  % Anonymous function ptr to phenotypic categorization function (= VAE)
 hypID = 1;
 

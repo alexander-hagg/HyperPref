@@ -18,7 +18,7 @@ if nargin > 2
     disp(['Latent dims: ' int2str(configuration.latentDim)]);
 end
 
-configuration.numFilters                    = 4;
+configuration.numFilters                    = 8;
 configuration.trainPerc                     = 1.00;
 configuration.numEpochs                     = 500;
 configuration.maxBatchSize                  = 128;
