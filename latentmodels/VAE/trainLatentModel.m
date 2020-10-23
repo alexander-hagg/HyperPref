@@ -64,7 +64,7 @@ for epoch = 1:numEpochs
         
         [z, zMean, zLogvar] = sampling(encoderNet, XTest);
         xPred = sigmoid(forward(decoderNet, z));
-        [elbo,reconstructionLoss,KL] = ELBOloss(XTest, xPred, zMean, zLogvar, epoch, numEpochs);
+        [elbo,reconstructionLoss,KL] = ELBOloss(XTest, xPred, zMean, zLogvar, z, epoch, numEpochs);
         if epoch==1 || mod(epoch,50)==0
             disp("Epoch : " + epoch + ...
                 " Test ELBO loss = "+gather(extractdata(elbo))+ ...
@@ -98,7 +98,7 @@ for epoch = 1:numEpochs
             
                 [z, zMean, zLogvar] = sampling(encoderNet, XBatch);
                 xPred = sigmoid(forward(decoderNet, z));
-                [elbo(it),reconstructionLoss(it),KL(it)] = ELBOloss(XBatch, xPred, zMean, zLogvar, epoch, numEpochs);
+                [elbo(it),reconstructionLoss(it),KL(it)] = ELBOloss(XBatch, xPred, zMean, zLogvar, z, epoch, numEpochs);
                 it = it + 1;
             end
             disp("Epoch : " + epoch + ...

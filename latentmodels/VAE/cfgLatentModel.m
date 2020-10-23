@@ -8,7 +8,8 @@ function model = cfgLatentModel(workDir,resolution, varargin)
 %
 %------------- BEGIN CODE --------------
 
-lossFunction                  = 'beta_annealing';           % default binaryCrossEntropy
+lossFunction                  = 'beta';%'tcbeta' 'beta';           % default binaryCrossEntropy
+disp(['VAE with loss function: ' lossFunction]);
 rmpath(genpath('latentmodels/VAE/lossFunctions')); addpath(genpath(['latentmodels/VAE/lossFunctions/loss_' lossFunction]));
 mkdir(workDir);
 structure                           = 'convDefault2';
@@ -18,9 +19,9 @@ if nargin > 2
     disp(['Latent dims: ' int2str(configuration.latentDim)]);
 end
 
-configuration.numFilters                    = 16;
+configuration.numFilters                    = 32;
 configuration.trainPerc                     = 1.00;
-configuration.numEpochs                     = 1000;
+configuration.numEpochs                     = 2000;
 configuration.maxBatchSize                  = 128;
 configuration.learnRate                     = 1e-3;
 configuration.filterSize                    = 3;

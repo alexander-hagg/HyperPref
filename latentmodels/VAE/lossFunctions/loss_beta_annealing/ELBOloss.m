@@ -1,11 +1,13 @@
-function [elbo,reconstructionLoss,KL] = ELBOloss(x, xPred, zMean, zLogvar, epoch, numEpochs)
+function [elbo,reconstructionLoss,KL] = ELBOloss(x, xPred, zMean, zLogvar, z, epoch, numEpochs)
 beta = 5;
 squares = 0.5*(xPred-x).^2;
 reconstructionLoss  = sum(squares, [1,2,3]);
+
 KL = -.5 * sum(1 + zLogvar - zMean.^2 - exp(zLogvar), 1);
 
 annealingScalar = linear_annealing(0, 1, epoch, numEpochs);
-elbo = mean(reconstructionLoss + (annealingScalar+1) * beta * KL);
+elbo = mean(reconstructionLoss + (annealingScalar) * beta * KL);
+
 % For output
 reconstructionLoss = mean(reconstructionLoss);
 KL = mean(KL);
