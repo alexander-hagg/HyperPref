@@ -1,5 +1,5 @@
 function [elbo,reconstructionLoss,KL] = ELBOloss(x, xPred, zMean, zLogvar, z, epoch, numEpochs)
-beta = 5;
+beta = 0.1;
 squares = 0.5*(xPred-x).^2;
 reconstructionLoss  = sum(squares, [1,2,3]);
 

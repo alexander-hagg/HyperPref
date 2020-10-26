@@ -1,4 +1,4 @@
-function figHandle = showPhenotype(genomes,d,varargin)
+function figHandle = showPhenotypeBMP(genomes,d,varargin)
 %showPhenotype - Either show an example phenotype, or, when given, show
 %                multiple phenotypes that are positioned on predefined placement positions.
 %                Yes, this visualization script does too many things at the same time.
