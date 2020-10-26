@@ -22,9 +22,7 @@ warning('off', 'MATLAB:MKDIR:DirectoryExists');warning('off', 'MATLAB:polyshape:
 %% Encoding
 % Default number of degrees of freedom in representation
 if strcmp(dof,'default'); d.dof = 16; else; d.dof = dof; end
-name = 'symmetry'; if nargin > 1; name = varargin{1}; end
-d.nGPUs = 1; if nargin > 2; d.nGPUs = varargin{2}; end
-
+d.nGPUs = 1; 
 
 % FFD base shape (circle)
 t                                   = 0:2*pi/(d.dof/2):2*pi; t(end) = [];
@@ -33,14 +31,15 @@ d.base                              = [x1,y1];
 d.getPhenotype                      = @(genomes) getPhenotypeFFD(genomes,d.base);
 
 % Set domain ranges
-axialBoundAdaptation                = 0.1;
-radialBoundAdaptation               = 0.25;
+axialBoundAdaptation                = 0.05; if nargin > 1; axialBoundAdaptation = varargin{1}; end
+radialBoundAdaptation               = 0.25; if nargin > 2; radialBoundAdaptation = varargin{2}; end
+
 d.ranges(:,1)                       = [axialBoundAdaptation*ones(d.dof/2,1);-radialBoundAdaptation*pi*ones(d.dof/2,1)];
 d.ranges(:,2)                       = [ ones(d.dof/2,1); radialBoundAdaptation*pi*ones(d.dof/2,1)];
 d.validate                          = 'validate'; % Validation function that is called when creating new solutions. Can contain any constraints.
 disp(['Parameter Bounds: ' num2str(radialBoundAdaptation) ' / ' num2str(axialBoundAdaptation)]);
 
-d.resolution                        = 64;%128;
+d.resolution                        = 64;%64;%128;
 
 %% Misc
 d.flipMap = true;

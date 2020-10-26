@@ -25,7 +25,7 @@ load([DOMAIN '_step1.mat']);
 [genes,fitness,features,bins] = extractMap(results{1}.maps{1});
 % Visualization
 colors = [zeros(size(genes,1),1) fitness zeros(size(genes,1),1)];            
-showPhenotype(genes, d, p.featureResolution(1), [], bins, colors); title('1st Iteration Result');
+showPhenotype(genes, d, 1.1, [], bins, colors); title('1st Iteration Result');
 
 %% Selection
 currentSelection = randi(numel(fitness)); % In this demo, select one random shape

@@ -11,10 +11,13 @@ vae.encoderLG = layerGraph([
     imageInputLayer(imageSize,'Name','input_encoder','Normalization','none')
     convolution2dLayer(filterSize, numFilters, 'Padding','same', 'Stride', stride, 'Name', 'conv1', 'WeightsInitializer', weightsInitializer)
     reluLayer('Name','relu01')
+    %maxPooling2dLayer(2,'Stride',2,'Name','maxpool1')
     convolution2dLayer(filterSize, numFilters, 'Padding','same', 'Stride', stride, 'Name', 'conv2', 'WeightsInitializer', weightsInitializer)
     reluLayer('Name','relu02')
+    %maxPooling2dLayer(2,'Stride',2,'Name','maxpool2')
     convolution2dLayer(filterSize, numFilters, 'Padding','same', 'Stride', stride, 'Name', 'conv3', 'WeightsInitializer', weightsInitializer)
     reluLayer('Name','relu03')
+    %maxPooling2dLayer(2,'Stride',2,'Name','maxpool3')
     fullyConnectedLayer(2 * latentDim, 'Name', 'fc_encoder', 'WeightsInitializer', weightsInitializer)
     ]);
 

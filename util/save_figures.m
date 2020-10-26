@@ -15,7 +15,7 @@ for i = 1:length(fig)
     fig(i).CurrentAxes.XLabel.FontSize = fontsize;
     fig(i).CurrentAxes.YLabel.FontSize = fontsize;
     save2pdf([path '/' name int2str(i) '.pdf'],fig(i),600,canvas_size);
-    system(['pdfcrop ' [path '/' name int2str(i) '.pdf'] ' ' [path '/' name int2str(i) '.pdf']]);
+    %system(['pdfcrop ' [path '/' name int2str(i) '.pdf'] ' ' [path '/' name int2str(i) '.pdf']]);
 end
 
 end

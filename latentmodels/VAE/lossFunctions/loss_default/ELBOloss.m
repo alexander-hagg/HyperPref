@@ -1,4 +1,4 @@
-function [elbo,reconstructionLoss,KL] = ELBOloss(x, xPred, zMean, zLogvar, epoch, numEpochs)
+function [elbo,reconstructionLoss,KL] = ELBOloss(x, xPred, zMean, zLogvar, z, epoch, numEpochs)
 %disp(['Pred. size: ' mat2str(size(xPred)) ' org. size: ' mat2str(size(x))]);
 
 squares = 0.5*(xPred-x).^2;

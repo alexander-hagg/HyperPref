@@ -61,22 +61,51 @@ for epoch = 1:numEpochs
         if (executionEnvironment == "auto" && canUseGPU) || executionEnvironment == "gpu"
             XTest = gpuArray(XTest);
         end
-    
+        
         [z, zMean, zLogvar] = sampling(encoderNet, XTest);
         xPred = sigmoid(forward(decoderNet, z));
-        [elbo,reconstructionLoss,KL] = ELBOloss(XTest, xPred, zMean, zLogvar, epoch, numEpochs);
+        [loss,reconstructionLoss,regTerm] = ELBOloss(XTest, xPred, zMean, zLogvar, z, epoch, numEpochs);
         if epoch==1 || mod(epoch,50)==0
             disp("Epoch : " + epoch + ...
-                " Test ELBO loss = "+gather(extractdata(elbo))+ ...
-                " Test reconstruction loss = "+gather(extractdata(reconstructionLoss))+ ...
-                " Test KL loss = "+gather(extractdata(KL))+ ...
+                " Test loss = "+gather(extractdata(loss))+ ...
+                " Test reconstruction error = "+gather(extractdata(reconstructionLoss))+ ...
+                " Test regularization term = "+gather(extractdata(regTerm))+ ...
                 ". Time taken for epoch = "+ elapsedTime + "s")
         end
-        model.losses(epoch) = gather(extractdata(elbo));
+        model.losses(epoch) = gather(extractdata(loss));
     else
         if epoch==1 || mod(epoch,50)==0
             disp("Epoch : " + epoch + ...
                 ". Time taken for epoch = "+ elapsedTime + "s");
+            it=1;
+            data.trainStore.reset;
+            while hasdata(data.trainStore)
+                % Read mini-batch of data.
+                batchDataTable = read(data.trainStore);
+            
+                % Ignore last partial mini-batch of epoch.
+                if size(batchDataTable,1) < miniBatchSize
+                    continue
+                end
+            
+                XBatch = cat(4,batchDataTable.input{:,1});
+                XBatch = dlarray(single(XBatch), 'SSCB');
+            
+                if (executionEnvironment == "auto" && canUseGPU) || executionEnvironment == "gpu"
+                    XBatch = gpuArray(XBatch);
+                end
+            
+            
+                [z, zMean, zLogvar] = sampling(encoderNet, XBatch);
+                xPred = sigmoid(forward(decoderNet, z));
+                [loss(it),reconstructionLoss(it),regTerm(it)] = ELBOloss(XBatch, xPred, zMean, zLogvar, z, epoch, numEpochs);
+                it = it + 1;
+            end
+            disp("Epoch : " + epoch + ...
+                " Mean Training loss = "+mean(gather(extractdata(loss)))+ ...
+                " Mean Training reconstruction loss = "+mean(gather(extractdata(reconstructionLoss)))+ ...
+                " Mean Training regularization term = "+mean(gather(extractdata(regTerm)))+ ...
+                ". Time taken for epoch = "+ elapsedTime + "s")
         end
     end
 end
