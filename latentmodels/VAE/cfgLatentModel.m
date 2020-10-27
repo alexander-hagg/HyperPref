@@ -21,7 +21,7 @@ end
 
 configuration.numFilters                    = 32;
 configuration.trainPerc                     = 1.00;
-configuration.numEpochs                     = 1000;
+configuration.numEpochs                     = 2000;
 configuration.maxBatchSize                  = 128;
 configuration.learnRate                     = 1e-3;
 configuration.filterSize                    = 4;

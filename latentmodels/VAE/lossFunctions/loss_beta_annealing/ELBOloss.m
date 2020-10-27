@@ -1,14 +1,13 @@
 function [elbo,reconstructionLoss,KL] = ELBOloss(x, xPred, zMean, zLogvar, z, epoch, numEpochs)
-beta = 10;
-maxNats = 1; % not realyl calculating nats
-%squares = 0.5*(xPred-x).^2;
-%reconstructionLoss  = sum(squares, [1,2,3]);
+gamma = 10;
+maxNats = 5;
+%squares = 0.5*(xPred-x).^2; reconstructionLoss  = sum(squares, [1,2,3]);
 reconstructionLoss = crossentropy(xPred,x,'TargetCategories','independent');
 
 KL = -.5 * sum(1 + zLogvar - zMean.^2 - exp(zLogvar), 1);
 
 annealingScalar = linear_annealing(0, maxNats, epoch, numEpochs);
-elbo = mean(reconstructionLoss + beta * (KL - annealingScalar));
+elbo = mean(reconstructionLoss + gamma * (KL - annealingScalar));
 
 % For output
 reconstructionLoss = mean(reconstructionLoss);
