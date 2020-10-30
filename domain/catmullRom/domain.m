@@ -28,7 +28,7 @@ d.nGPUs = 1;
 t                                   = 0:2*pi/(d.dof/2):2*pi; t(end) = [];
 x1                                  = 0.5*cos(t); y1 = 0.5*sin(t);
 d.base                              = [x1,y1];
-d.getPhenotype                      = @(genomes) getPhenotypeFFD(genomes,d.base);
+d.getPhenotype                      = @(genomes) getPhenotypeBoolean(getPhenotypeFFD(genomes,d.base));
 
 % Set domain ranges
 axialBoundAdaptation                = 0.05; if nargin > 1; axialBoundAdaptation = varargin{1}; end

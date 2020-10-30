@@ -44,10 +44,10 @@ while (iGen <= p.nGens)
     children = children(1:p.nChildren,:);
        
     percValid(iGen) = 1;
-    [fitness,newPolygons] = fitfun(children,d);
+    [fitness,newPhenotypes] = fitfun(children,d);
     
     %% Add Children to Map
-    features = p.categorize(children,newPolygons,p,d);
+    features = p.categorize(children,newPhenotypes,p,d);
     [replaced, replacement, features] = nicheCompete(children,fitness,map,d,p,features);
     percImproved(iGen) = length(replaced)/p.nChildren;
     map = updateMap(replaced,replacement,map,fitness',children,features);    

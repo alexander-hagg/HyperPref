@@ -1,7 +1,6 @@
 function [elbo,reconstructionLoss,KL] = ELBOloss(x, xPred, zMean, zLogvar, z, epoch, numEpochs)
-gamma = 10;
-maxNats = 5;
-%squares = 0.5*(xPred-x).^2; reconstructionLoss  = sum(squares, [1,2,3]);
+gamma = 20;
+maxNats = 1;
 reconstructionLoss = crossentropy(xPred,x,'TargetCategories','independent');
 
 KL = -.5 * sum(1 + zLogvar - zMean.^2 - exp(zLogvar), 1);

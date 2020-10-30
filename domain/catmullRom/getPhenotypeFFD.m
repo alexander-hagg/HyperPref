@@ -55,6 +55,9 @@ for i=1:nGenomes
         % Remove holes
         shapes{i} = rmholes(shapes{i});
         ctlPts{i} = vertices;
+    else
+        shapes{i} = nan;
+        ctlPts{i} = nan;        
     end
 end
 

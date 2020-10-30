@@ -3,16 +3,18 @@ clear;
 addpath(genpath(pwd))                           % Set path to all modules
 DOF = 16;DOMAIN = 'catmullRom';                 % Degrees of freedom, Catmull-Rom spline domain
 d = domain(DOF);                                % Domain configuration
-numLatentDims = 2;
-m = cfgLatentModel('data/workdir',d.resolution, numLatentDims);% VAE configuration
 
 % Create shapes variations
-shapeParams = [1 0.3 1 0.3 1 0.3 1 0.3 zeros(1,8)];
-numShapes = 20; scaling = [0.2 1.0]; rotation = [0 0.45*pi];
+shapeParams = [1 0.5 1 0.5 1 0.5 1 0.5 zeros(1,8)];
+numShapes = 10; scaling = [0.25 1.0]; rotation = [0 0.45*pi];
 genomes = createShapeVariations(shapeParams,numShapes,scaling,rotation);
 
+fig(1) = figure(1); hold off; ax = gca;
+showPhenotype(shapeParams,d,1.2,ax); axis equal;
+    
 %% Three datasets: last two miss part of the training data
-deSelect{1} = []; deSelect{2} = [8:13]; deSelect{3} = [14:20];
+% deSelect{1} = []; deSelect{2} = [8:13]; deSelect{3} = [14:20]; % 20x20 shapes
+deSelect{1} = []; deSelect{2} = [4:7]; deSelect{3} = [6:10]; % 10x10 shapes
 allGenomes{1} = reshape(genomes,[],d.dof);
 allGenomes{2} = genomes;allGenomes{2}(deSelect{2},deSelect{2},:) = nan;allGenomes{2} = reshape(allGenomes{2},[],d.dof);allGenomes{2}(all(isnan(allGenomes{2})'),:) = [];
 allGenomes{3} = genomes;allGenomes{3}(deSelect{3},deSelect{3},:) = nan;allGenomes{3} = reshape(allGenomes{3},[],d.dof);allGenomes{3}(all(isnan(allGenomes{3})'),:) = [];
@@ -32,10 +34,25 @@ for i=1:3
 end
 
 %% Train models
+numLatentDims = 2;
+m = cfgLatentModel('data/workdir',d.resolution, numLatentDims);% VAE configuration
 for i=1:3; allModels{i} = trainFeatures(phenotypes{i},m);end
-save([DOMAIN '_bvae_1000_3.mat']);
+save([DOMAIN '_bvae_10x10_3.mat']);
+
+%% Visualize losses
+clear losses reconstructionLosses regTerms
+for i=1:3
+    losses(i,:) = [allModels{i}.statistics.loss(1) allModels{i}.statistics.loss(50:50:end)];
+    reconstructionLosses(i,:) = [allModels{i}.statistics.reconstructionLoss(1) allModels{i}.statistics.reconstructionLoss(50:50:end)];
+    regTerms(i,:) = [allModels{i}.statistics.regTerm(1) allModels{i}.statistics.regTerm(50:50:end)];
+end
+%figure(1);hold off; semilogy(losses');legend('A','B','C');xlabel('Epochs');ylabel('Training Loss');
+%figure(2);hold off; semilogy(reconstructionLosses');legend('A','B','C');ylabel('Reconstruction Loss');
+%figure(3);hold off; semilogy(regTerms');legend('A','B','C');ylabel('KL Loss');ax = gca; 
 
 %% Analysis: sample all models
+scale = d.resolution;
+    
 for i=1:3
     % Get predicted features for *all* shapes, incl. the ones missing from
     % training data for particular model.
@@ -43,15 +60,15 @@ for i=1:3
     features{i} = getPrediction(phen,allModels{i});
     
     % Create latent samples
-    minFeatures = 1*min(features{i}(:)); maxFeatures = 1*max(features{i}(:));
+    minFeatures = 1.05*min(features{i}(:)); maxFeatures = 1.05*max(features{i}(:));
     nSamples = 10;
     x = minFeatures:(maxFeatures-minFeatures)/nSamples:maxFeatures; y = x; [X,Y] = ndgrid(x,y);
     varyCoords = [X(:),Y(:)]';
     input = []; input(1,1,:,:) = varyCoords; input = dlarray(input,'SSCB');
     genImgSample{i} = sigmoid(predict(allModels{i}.decoderNet, input));
     genImgSample{i} = gather(extractdata(genImgSample{i}));
+   
     % Place collected VAE outputs in latent space
-    scale = d.resolution;
     [normVaryCoords{i},mapping{i}] = mapminmax(varyCoords,-nSamples,nSamples);
     bitmapCoords = 1 + (ceil(scale*normVaryCoords{i})-min(ceil(scale*normVaryCoords{i}(:))));
     
@@ -119,7 +136,6 @@ distances = pdist2(allTrainingFeatures,allTrainingFeatures);
 distances(1:size(distances,1)+1:end) = nan; % Leave out distances from elements to themselves
 minDistances(1,1) = min(distances(:));
     
-clear fig;
 for i=2:3
     [~,phen] = fitfun(reshape(allGenomes{i},[],d.dof),d);
     [~,phen] = getPhenotypeBoolean(phen, allModels{i}.encoderLG.Layers(1).InputSize(1));
@@ -132,7 +148,7 @@ for i=2:3
     
     
     BMIN = 0; BMAX = 5; YMAX = 0.3;
-    fig((i-2)*2+1) = figure;
+    fig(end+1) = figure;
     subplot(1,3,1);
     distances = pdist2(allTrainingFeatures,allTrainingFeatures);
     distances(1:size(distances,1)+1:end) = nan; % Leave out distances from elements to themselves
@@ -156,7 +172,7 @@ for i=2:3
     ax = gca;ax.YLim = [0 YMAX];grid on;
     title('missing-train');
     
-    fig((i-2)*2+2) = figure;
+    fig(end+1) = figure;
     hold off;
     scatter(allTrainingFeatures(:,1),allTrainingFeatures(:,2),32,'b','filled');
     hold on;
@@ -177,7 +193,7 @@ for i=1:3
     
     %% Turn VAE outputs to viewable images
     % Create image with samples in latent coordinates
-    imgSize = [0 -min(bitmapCoords(:)) + max(bitmapCoords(:))+scale];
+    imgSize = [0 -min(bitmapCoords(:)) + max(bitmapCoords(:)) + scale];
     clear img; img{1} = (zeros(range(imgSize),range(imgSize)));img{2} = img{1}; img{3} = img{1}; img{4} = img{1};
     for jj=1:size(genImgSample{i},4)
         coords = bitmapCoords(:,jj)';
@@ -230,7 +246,7 @@ for i=1:3
     imgComplete(img{4}(:)>0) = 1*img{4}(img{4}(:)>0);      % Ground truth of all training examples
     
     % Show image
-    fig(99+i) = figure(99+i);
+    fig(end+1) = figure;
     hold off; ax=gca;
     imshow(imgComplete);
     hold on;

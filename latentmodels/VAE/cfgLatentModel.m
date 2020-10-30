@@ -13,15 +13,15 @@ disp(['VAE with loss function: ' lossFunction]);
 rmpath(genpath('latentmodels/VAE/lossFunctions')); addpath(genpath(['latentmodels/VAE/lossFunctions/loss_' lossFunction]));
 mkdir(workDir);
 structure                           = 'convDefault2';
-configuration.latentDim             = 16;
+configuration.latentDim             = 2;
 if nargin > 2
     configuration.latentDim = varargin{1};
     disp(['Latent dims: ' int2str(configuration.latentDim)]);
 end
 
-configuration.numFilters                    = 32;
+configuration.numFilters                    = 64;
 configuration.trainPerc                     = 1.00;
-configuration.numEpochs                     = 2000;
+configuration.numEpochs                     = 1000;%10000;
 configuration.maxBatchSize                  = 128;
 configuration.learnRate                     = 1e-3;
 configuration.filterSize                    = 4;
@@ -30,7 +30,7 @@ if nargin > 3
     disp(['configuration.filterSize: ' int2str(configuration.filterSize)]);
 end
 
-configuration.stride                        = 1;
+configuration.stride                        = 2;
 if nargin > 4
     configuration.stride = varargin{3};
     disp(['configuration.stride: ' int2str(configuration.stride)]);

@@ -24,13 +24,12 @@ function [fitness,polygons,rawFitness,relativeSelectionDistance] = fitfun(genome
 if isempty(genomes)
     fitness = [];
     polygons = [];
-    rawFitness = [];
+    meanDistanceDiagonals = [];
     return;
 end
 
 
 [polygons] = d.getPhenotype(genomes);
-
 
 rawFitness = zeros(length(polygons),1);
 
