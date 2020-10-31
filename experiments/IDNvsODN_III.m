@@ -43,78 +43,67 @@ disp('Finished POEM on parameter space');
 %% Run POEM on latent space with latent space niching
 initLatentSamples2 = getPrediction(phenotypes,results{3}.models(1));
 latentDomain.getPhenotype = @(latentCoords)sampleVAE(latentCoords,results{3}.models(1).decoderNet);
-[map{4}, config{4}, results{4}] = poem(initLatentSamples,pm,latentDomain,results{3}.models(1));
+[map{4}, config{4}, results{4}] = poem(initLatentSamples2,pm,latentDomain,results{3}.models(1));
 save([DOMAIN '_step4.mat']);
 
+%% Run POEM on parameter space with latent space niching
+initSamples3 = reshape(map{3}.genes,[],d.dof);
+initSamples3 = initSamples3(all(~isnan(initSamples3)'),:);
+[map{5}, config{5}, results{5}] = poem(initSamples3,pm,d);
+save([DOMAIN '_step5.mat']);
+disp('Finished POEM on parameter space');
+
+%% Run POEM on latent space with latent space niching
+initLatentSamples3 = getPrediction(phenotypes,results{5}.models(1));
+latentDomain.getPhenotype = @(latentCoords)sampleVAE(latentCoords,results{5}.models(1).decoderNet);
+[map{6}, config{6}, results{6}] = poem(initLatentSamples3,pm,latentDomain,results{5}.models(1));
+save([DOMAIN '_step6.mat']);
+
 %% Visualize
-fig(1) = figure(1); viewMap(map{1},d)
-fig(2) = figure(2); viewMap(map{2},latentDomain)
-
-fig(5) = figure(5); viewMap(map{3},d)
-fig(6) = figure(6); viewMap(map{4},latentDomain)
-
-genes = reshape(map{1}.genes,[],d.dof); genes = genes(all(~isnan(genes)'),:);
-placement = reshape(map{1}.features,[],2); placement = placement(all(~isnan(placement)'),:);
-fig(3) = figure(3);
-showPhenotypeBMP(genes,d,fig(3),placement)
-
-genes = reshape(map{2}.genes,[],latentDomain.dof); genes = genes(all(~isnan(genes)'),:);
-placement = reshape(map{2}.features,[],2); placement = placement(all(~isnan(placement)'),:);
-input = []; input(1,1,:,:) = genes'; input = dlarray(input,'SSCB');
-modelOutput = sigmoid(predict(results{1}.models(1).decoderNet, input));
-modelOutput = gather(extractdata(modelOutput));    %reproduced
-clear bitmaps;
-for i=1:size(modelOutput,4)
-    bitmaps{i} = squeeze(modelOutput(:,:,1,i));
+for i=1:3
+    % Show feature map - search: parameter space
+    fig((i-1)*4+1) = figure((i-1)*4+1); viewMap(map{(i-1)*2+1},d)
+    
+    % Show feature map - search: latent space
+    fig((i-1)*4+2) = figure((i-1)*4+2); viewMap(map{(i-1)*2+2},latentDomain)
+    
+    % Show shapes - search: parameter space
+    genes = reshape(map{(i-1)*2+1}.genes,[],d.dof); genes = genes(all(~isnan(genes)'),:);
+    placement = reshape(map{(i-1)*2+1}.features,[],2); placement = placement(all(~isnan(placement)'),:);
+    fig((i-1)*4+3) = figure((i-1)*4+3);
+    showPhenotypeBMP(genes,d,fig((i-1)*4+3),placement);
+    
+    % Show shapes - search: latent space
+    genes = reshape(map{(i-1)*2+2}.genes,[],latentDomain.dof); genes = genes(all(~isnan(genes)'),:);
+    placement = reshape(map{(i-1)*2+2}.features,[],2); placement = placement(all(~isnan(placement)'),:);
+    input = []; input(1,1,:,:) = genes'; input = dlarray(input,'SSCB');
+    modelOutput = sigmoid(predict(results{(i-1)*2+1}.models(1).decoderNet, input));
+    modelOutput = gather(extractdata(modelOutput));    %reproduced
+    clear bitmaps;
+    for j=1:size(modelOutput,4)
+        bitmaps{j} = squeeze(modelOutput(:,:,1,j));
+    end
+    fig((i-1)*4+4) = figure((i-1)*4+4);
+    showPhenotypeBMP(bitmaps,d,fig((i-1)*4+4),placement);
 end
-fig(4) = figure(4);
-showPhenotypeBMP(bitmaps,d,fig(4),placement)
 
-genes = reshape(map{3}.genes,[],d.dof); genes = genes(all(~isnan(genes)'),:);
-placement = reshape(map{3}.features,[],2); placement = placement(all(~isnan(placement)'),:);
-fig(7) = figure(7);
-showPhenotypeBMP(genes,d,fig(7),placement);
 
-genes = reshape(map{4}.genes,[],latentDomain.dof); genes = genes(all(~isnan(genes)'),:);
-placement = reshape(map{4}.features,[],2); placement = placement(all(~isnan(placement)'),:);
-input = []; input(1,1,:,:) = genes'; input = dlarray(input,'SSCB');
-modelOutput = sigmoid(predict(results{3}.models(1).decoderNet, input));
-modelOutput = gather(extractdata(modelOutput));    %reproduced
-clear bitmaps;
-for i=1:size(modelOutput,4)
-    bitmaps{i} = squeeze(modelOutput(:,:,1,i));
+BMIN = 0.5; BMAX = 1; YMAX = 80;
+fig(end+1) = figure;
+for i=1:6
+subplot(3,2,i);
+histogram(map{i}.fitness(:),20,'BinLimits',[BMIN,BMAX],'Normalization','count')
+ax = gca;ax.YLim = [0 YMAX];grid on;title('fitness');
 end
-fig(8) = figure(8);
-showPhenotypeBMP(bitmaps,d,fig(8),placement);
-
 
 %%
 save_figures(fig, '.', 'IDNODNIII', 12, [5 5])
 
-%%
-
-BMIN = 0.5; BMAX = 1; YMAX = 80;
-fig(end+1) = figure;
-subplot(2,2,1);
-histogram(map{1}.fitness(:),20,'BinLimits',[BMIN,BMAX],'Normalization','count')
-ax = gca;ax.YLim = [0 YMAX];grid on;title('fitness A');
-
-subplot(2,2,2);
-histogram(map{2}.fitness(:),20,'BinLimits',[BMIN,BMAX],'Normalization','count')
-ax = gca;ax.YLim = [0 YMAX];grid on;title('fitness B');
-
-subplot(2,2,3);
-histogram(map{3}.fitness(:),20,'BinLimits',[BMIN,BMAX],'Normalization','count')
-ax = gca;ax.YLim = [0 YMAX];grid on;title('fitness C');
-
-subplot(2,2,4);
-histogram(map{4}.fitness(:),20,'BinLimits',[BMIN,BMAX],'Normalization','count')
-ax = gca;ax.YLim = [0 YMAX];grid on;title('fitness D');
 
 %%
 genes = reshape(map{1}.genes,[],d.dof); genes = genes(all(~isnan(genes)'),:);
 [~,flatbitmaps] = d.getPhenotype(genes);
-[score,distMetric] = metricPD(flatbitmaps, 'hamming')
+[score(1),distMetric] = metricPD(flatbitmaps, 'hamming');
 
 genes = reshape(map{2}.genes,[],latentDomain.dof); genes = genes(all(~isnan(genes)'),:);
 [bitmaps] = latentDomain.getPhenotype(genes);
@@ -122,12 +111,12 @@ flatbitmaps = [];
 for i=1:length(bitmaps)
     flatbitmaps(i,:) = imbinarize(bitmaps{i}(:),0.9);
 end
-[score,distMetric] = metricPD(flatbitmaps, 'hamming')
+[score(2),distMetric] = metricPD(flatbitmaps, 'hamming');
 
 
 genes = reshape(map{3}.genes,[],d.dof); genes = genes(all(~isnan(genes)'),:);
 [~,flatbitmaps] = d.getPhenotype(genes);
-[score,distMetric] = metricPD(flatbitmaps, 'hamming')
+[score(3),distMetric] = metricPD(flatbitmaps, 'hamming');
 
 genes = reshape(map{4}.genes,[],latentDomain.dof); genes = genes(all(~isnan(genes)'),:);
 [bitmaps] = latentDomain.getPhenotype(genes);
@@ -135,8 +124,18 @@ flatbitmaps = [];
 for i=1:length(bitmaps)
     flatbitmaps(i,:) = imbinarize(bitmaps{i}(:),0.9);
 end
-[score,distMetric] = metricPD(flatbitmaps, 'hamming')
+[score(4),distMetric] = metricPD(flatbitmaps, 'hamming');
 
+genes = reshape(map{5}.genes,[],d.dof); genes = genes(all(~isnan(genes)'),:);
+[~,flatbitmaps] = d.getPhenotype(genes);
+[score(5),distMetric] = metricPD(flatbitmaps, 'hamming');
 
+genes = reshape(map{6}.genes,[],latentDomain.dof); genes = genes(all(~isnan(genes)'),:);
+[bitmaps] = latentDomain.getPhenotype(genes);
+flatbitmaps = [];
+for i=1:length(bitmaps)
+    flatbitmaps(i,:) = imbinarize(bitmaps{i}(:),0.9);
+end
+[score(6),distMetric] = metricPD(flatbitmaps, 'hamming');
 
-
+score

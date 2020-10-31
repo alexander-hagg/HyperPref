@@ -33,6 +33,11 @@ logicalPhenotypes = phenotypes;
 
 for i=1:length(phenotypes)
     if ~islogical(phenotypes{i})
+        if max(phenotypes{i}(:)) < 0.9
+            meanDistanceDiagonals(i) = nan;
+            symmetryFitness(i) = nan;
+            continue;
+        end
         logicalPhenotypes{i} = imbinarize(phenotypes{i},0.9);
     end
     B = bwboundaries(logicalPhenotypes{i},'noholes');
