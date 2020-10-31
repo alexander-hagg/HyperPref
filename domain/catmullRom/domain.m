@@ -31,15 +31,16 @@ d.base                              = [x1,y1];
 d.getPhenotype                      = @(genomes) getPhenotypeBoolean(getPhenotypeFFD(genomes,d.base));
 
 % Set domain ranges
-axialBoundAdaptation                = 0.05; if nargin > 1; axialBoundAdaptation = varargin{1}; end
+axialBoundAdaptation                = 0.1; if nargin > 1; axialBoundAdaptation = varargin{1}; end
 radialBoundAdaptation               = 0.25; if nargin > 2; radialBoundAdaptation = varargin{2}; end
 
 d.ranges(:,1)                       = [axialBoundAdaptation*ones(d.dof/2,1);-radialBoundAdaptation*pi*ones(d.dof/2,1)];
 d.ranges(:,2)                       = [ ones(d.dof/2,1); radialBoundAdaptation*pi*ones(d.dof/2,1)];
 d.validate                          = 'validate'; % Validation function that is called when creating new solutions. Can contain any constraints.
-disp(['Parameter Bounds: ' num2str(radialBoundAdaptation) ' / ' num2str(axialBoundAdaptation)]);
+disp(['Parameter Bounds  / axial: ' num2str(axialBoundAdaptation) ' - ' num2str(1) '  / radial: ' num2str(-radialBoundAdaptation)  ' - ' num2str(radialBoundAdaptation) ' (x pi)']);
 
-d.resolution                        = 64;%64;%128;
+
+d.resolution                        = 64;
 
 %% Misc
 d.flipMap = true;

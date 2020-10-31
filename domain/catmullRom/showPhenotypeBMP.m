@@ -54,15 +54,14 @@ end
 
 placeRange = (max(placement(:))-min(placement(:)));
 bitmap = logical(zeros(placeRange,placeRange));
+%%
 for i=1:nShapes
     if ~isempty(bitmaps{i})
         pl = placement(i,:);
         if ~islogical(bitmaps{i})
-            bitmaps{i} = imbinarize(bitmaps{i});
+            bitmaps{i} = imbinarize(bitmaps{i},0.9);            
         end
-        bitmap(pl(1):pl(1)+d.resolution-1,pl(2):pl(2)+d.resolution-1) = bitmaps{i};
-        %bitmap((((pl(1)-1))*placeRange)*2 + [1:d.resolution],((pl(2)-1)*placeRange)*2 + [1:d.resolution]) = booleanMaps{i};
-        
+        bitmap(pl(1):pl(1)+d.resolution-1,pl(2):pl(2)+d.resolution-1) = bitmaps{i};        
     end
 end
 

@@ -33,7 +33,7 @@ logicalPhenotypes = phenotypes;
 
 for i=1:length(phenotypes)
     if ~islogical(phenotypes{i})
-        logicalPhenotypes{i} = imbinarize(phenotypes{i});
+        logicalPhenotypes{i} = imbinarize(phenotypes{i},0.9);
     end
     B = bwboundaries(logicalPhenotypes{i},'noholes');
     id = 1; maxVal = size(B{1},1);
