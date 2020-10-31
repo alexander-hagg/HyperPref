@@ -17,7 +17,7 @@ function p = defaultParamSet(varargin)
 
 %p.numInitSamples            = 2^5;      % number of initial samples
 %(overwritten by POEM)
-p.nGens                     = 2^9;       % number of generations
+p.nGens                     = 2^11;       % number of generations
 p.nChildren                 = 2^5;      % number of children per generation
 p.mutSigma                  = 0.1;      % mutation drawn from Gaussian distribution with this \sigma
 p.featureResolution         = [16,16]  % Resolution of the map (in cells per dimension). Keep it square

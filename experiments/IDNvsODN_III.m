@@ -1,7 +1,7 @@
 clear;
 %% Configuration
 addpath(genpath(pwd))                           % Set path to all modules
-DOF = 16;DOMAIN = 'catmullRom';                 % Degrees of freedom, Catmull-Rom spline domain
+DOF = 16;                                       % Degrees of freedom, Catmull-Rom spline domain
 d = domain(DOF);                                % Domain configuration
 latentDomain = d; latentDomain.dof = 2; latentDomain.ranges = [-3 3; -3 3];
 
@@ -11,6 +11,7 @@ pm = poemParamSet(p,m);                         % Configure POEM ("Phenotypic ni
 pm.categorize = @(geno,pheno,p,d) predictFeatures(pheno,p.model);  % Anonymous function ptr to phenotypic categorization function (= VAE)
 FITNESSFUNCTION = 'bmpSymmetry'; rmpath(genpath('domain/catmullRom/fitnessFunctions')); addpath(genpath(['domain/catmullRom/fitnessFunctions/' FITNESSFUNCTION]));
 
+fileName = ['catmullRom_III'];
 %% Initialize Experiment
 % Initialize solution set using space filling Sobol sequence in genetic space
 sobSequence = scramble(sobolset(d.dof,'Skip',1e3),'MatousekAffineOwen');  sobPoint = 1;
@@ -19,7 +20,7 @@ initSamples = range(d.ranges').*sobSequence(sobPoint:(sobPoint+pm.map.numInitSam
 
 %% Run POEM on parameter space with latent space niching
 [map{1}, config{1}, results{1}] = poem(initSamples,pm,d);
-save([DOMAIN '_step1.mat']);
+save([fileName '_step1.mat']);
 disp('Finished POEM on parameter space');
 
 
@@ -27,7 +28,7 @@ disp('Finished POEM on parameter space');
 [initLatentSamples ,xPred,xTrue]= getPrediction(phenotypes,results{1}.models(1));
 latentDomain.getPhenotype = @(latentCoords)sampleVAE(latentCoords,results{1}.models(1).decoderNet);
 [map{2}, config{2}, results{2}] = poem(initLatentSamples,pm,latentDomain,results{1}.models(1));
-save([DOMAIN '_step2.mat']);
+save([fileName '_step2.mat']);
 
 % TODO does not work with latent dimensions other than 2
 
@@ -36,7 +37,7 @@ save([DOMAIN '_step2.mat']);
 initSamples2 = reshape(map{1}.genes,[],d.dof);
 initSamples2 = initSamples2(all(~isnan(initSamples2)'),:);
 [map{3}, config{3}, results{3}] = poem(initSamples2,pm,d);
-save([DOMAIN '_step3.mat']);
+save([fileName '_step3.mat']);
 disp('Finished POEM on parameter space');
 
 
@@ -44,20 +45,20 @@ disp('Finished POEM on parameter space');
 initLatentSamples2 = getPrediction(phenotypes,results{3}.models(1));
 latentDomain.getPhenotype = @(latentCoords)sampleVAE(latentCoords,results{3}.models(1).decoderNet);
 [map{4}, config{4}, results{4}] = poem(initLatentSamples2,pm,latentDomain,results{3}.models(1));
-save([DOMAIN '_step4.mat']);
+save([fileName '_step4.mat']);
 
 %% Run POEM on parameter space with latent space niching
 initSamples3 = reshape(map{3}.genes,[],d.dof);
 initSamples3 = initSamples3(all(~isnan(initSamples3)'),:);
 [map{5}, config{5}, results{5}] = poem(initSamples3,pm,d);
-save([DOMAIN '_step5.mat']);
+save([fileName '_step5.mat']);
 disp('Finished POEM on parameter space');
 
 %% Run POEM on latent space with latent space niching
 initLatentSamples3 = getPrediction(phenotypes,results{5}.models(1));
 latentDomain.getPhenotype = @(latentCoords)sampleVAE(latentCoords,results{5}.models(1).decoderNet);
 [map{6}, config{6}, results{6}] = poem(initLatentSamples3,pm,latentDomain,results{5}.models(1));
-save([DOMAIN '_step6.mat']);
+save([fileName '_step6.mat']);
 
 %% Visualize
 for i=1:3
