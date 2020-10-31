@@ -15,16 +15,27 @@ if p.display.illu
 end
 
 % 1. Train VAE
-[fitness,phenotypes] = fitfun(observations,d);
 if nargin > 3
    disp('User provided pretrained latent model');
     p.map.model = varargin{1};
+    [fitness,phenotypes] = fitfun(observations,d);
+    %if p.latentSearch
+    %    disp('Taking observations as features, which only works when searching in latent space!!');
+    %    features = observations;
+    %else
+        features = p.categorize(observations,phenotypes,p.map,d);
+    %end
 else
     disp('Training latent model');
-    p.map.model = trainFeatures(phenotypes,p.model); stats.models = p.map.model;
+    [fitness,phenotypes] = fitfun(observations,d);
+    p.map.model = trainFeatures(phenotypes,p.model);
+    features = p.categorize(observations,phenotypes,p.map,d);
 end
+stats.models = p.map.model;
 
-features = p.categorize(observations,phenotypes,p.map,d);
+%figure(1);scatter(observations(:,1),observations(:,2));axis equal;
+%figure(2);scatter(features(:,1),features(:,2)); axis equal;
+
 if p.display.illu
     figure(figPhenotypes); subplot(2,2,1);
     fits = fitfun(observations,d);

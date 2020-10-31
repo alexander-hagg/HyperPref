@@ -1,5 +1,5 @@
 function bitmaps = sampleVAE(latentVector,decoderNet)
-input = reshape(latentVector,1,1,size(latentVector,2),[]);
+input(1,1,:,:) = latentVector';
 input = dlarray(input,'SSCB');
 generatedImage = sigmoid(predict(decoderNet, input));
 returnImage = gather(extractdata(generatedImage));

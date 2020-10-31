@@ -20,7 +20,6 @@ function [fitness,phenotypes,rawFitness] = fitfun(input,d)
 % Jul 2019; Last revision: 15-Aug-2019
 %
 %------------- BEGIN CODE --------------
-polygons = nan;
 if isempty(input); fitness = []; polygons = []; rawFitness = []; return; end
 
 % Create bitmaps if input is in parameter space
@@ -30,11 +29,13 @@ else
     phenotypes = input;
 end
 
+logicalPhenotypes = phenotypes;
+
 for i=1:length(phenotypes)
     if ~islogical(phenotypes{i})
-        phenotypes{i} = imbinarize(phenotypes{i});
+        logicalPhenotypes{i} = imbinarize(phenotypes{i});
     end
-    B = bwboundaries(phenotypes{i},'noholes');
+    B = bwboundaries(logicalPhenotypes{i},'noholes');
     id = 1; maxVal = size(B{1},1);
     if length(B) > 1
         for boundaryID=2:length(B)

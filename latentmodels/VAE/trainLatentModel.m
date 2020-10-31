@@ -74,7 +74,7 @@ for epoch = 1:numEpochs
         end
         model.losses(epoch) = gather(extractdata(loss));
     else
-        if epoch==1 || mod(epoch,10)==0
+        if epoch==1 || mod(epoch,50)==0
             it=1;
             data.trainStore.reset;
             while hasdata(data.trainStore)

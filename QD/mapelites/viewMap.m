@@ -73,7 +73,6 @@ set(figHandle,...
     'xcolor', 'k', 'ycolor', 'k'...
     )
 cmap = parula(nColors); 
-cmap(end,:) = [0 1 0];
 colormap(figHandle,cmap);
 cHandle = colorbar(figHandle);
 caxis(figHandle,[0 1]);
