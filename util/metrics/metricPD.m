@@ -18,7 +18,7 @@ if nargin > 1
 end
 
 
-if isempty(samples) || size(samples,1) == 1
+if isempty(samples)
     result = nan;
     return;
 end

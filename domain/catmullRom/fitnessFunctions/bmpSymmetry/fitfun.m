@@ -35,7 +35,7 @@ for i=1:length(phenotypes)
     if ~islogical(phenotypes{i})
         if max(phenotypes{i}(:)) < 0.9
             meanDistanceDiagonals(i) = nan;
-            symmetryFitness(i) = nan;
+            symmetryFitness(i) = 0;
             continue;
         end
         logicalPhenotypes{i} = imbinarize(phenotypes{i},0.9);

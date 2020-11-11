@@ -19,12 +19,7 @@ if nargin > 3
    disp('User provided pretrained latent model');
     p.map.model = varargin{1};
     [fitness,phenotypes] = fitfun(observations,d);
-    %if p.latentSearch
-    %    disp('Taking observations as features, which only works when searching in latent space!!');
-    %    features = observations;
-    %else
-        features = p.categorize(observations,phenotypes,p.map,d);
-    %end
+    features = p.categorize(observations,phenotypes,p.map,d);
 else
     disp('Training latent model');
     [fitness,phenotypes] = fitfun(observations,d);
@@ -32,9 +27,6 @@ else
     features = p.categorize(observations,phenotypes,p.map,d);
 end
 stats.models = p.map.model;
-
-%figure(1);scatter(observations(:,1),observations(:,2));axis equal;
-%figure(2);scatter(features(:,1),features(:,2)); axis equal;
 
 if p.display.illu
     figure(figPhenotypes); subplot(2,2,1);
@@ -51,17 +43,11 @@ map = createMap(d, p.map);
 map = updateMap(replaced,replacement,map,fitness,observations,features);
 map = illuminate(map,p.map,d,p.model);
 
-% 3. Select new model members
-% disp('Select new members');
-% candidates = reshape(map.genes,[],d.dof); candidates(all(isnan(candidates)'),:) = [];
-% [fitness,phenotypes] = fitfun(candidates,d);
-% candidates(all(isnan(fitness)'),:) = []; phenotypes(all(isnan(fitness)')) = []; fitness(all(isnan(fitness)')) = []; observations = candidates;
-
-% 4. Statistics
+% 3. Statistics
 disp('Get statistics');
 stats.fitness.mean = nanmean(map.fitness(:)); stats.fitness.median = nanmedian(map.fitness(:)); stats.fitness.std = nanstd(map.fitness(:)); stats.fitness.total = nansum(map.fitness(:));
 stats.elites.number = sum(~isnan(map.fitness(:)));
-stats.maps{1} = map;
+stats.map = map;
 
 if p.display.illu
     figure(figPhenotypes);

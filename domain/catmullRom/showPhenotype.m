@@ -1,4 +1,4 @@
-function [axHandle,pgon,ctlPts] = showPhenotype(genomes,d,phenoDistMult,varargin)
+function [axHandle,phenotypes,ctlPts] = showPhenotype(genomes,d,phenoDistMult,varargin)
 %showPhenotype - Either show an example phenotype, or, when given, show
 %                multiple phenotypes that are positioned on predefined placement positions.
 %                Yes, this visualization script does too many things at the same time.
@@ -63,21 +63,21 @@ end
 placement(:,2) = -placement(:,2);
 %placement =  phenoDistMult * mapminmax(placement',0,1)';
 placement =  phenoDistMult * placement;
-[pgon,ctlPts] = d.getPhenotype(genomes);
+[phenotypes,ctlPts] = d.getPhenotype(genomes);
 hold(axHandle,'off');
 for i=1:nShapes
     % Change placement if necessary
-    if isa(pgon{i},'polyshape')
+    if isa(phenotypes{i},'polyshape')
         if exist('placement','var') && ~isempty(placement)
-            pgon{i}.Vertices = [pgon{i}.Vertices(:,2) pgon{i}.Vertices(:,1)];
-            pgon{i}.Vertices = pgon{i}.Vertices + placement(i,:);
+            phenotypes{i}.Vertices = [phenotypes{i}.Vertices(:,2) phenotypes{i}.Vertices(:,1)];
+            phenotypes{i}.Vertices = phenotypes{i}.Vertices + placement(i,:);
         end    
         if size(clrs,1) == nShapes
-            plot(axHandle,pgon{i},'FaceColor',clrs(i,:),'FaceAlpha',faceAlpha(i),'EdgeAlpha',faceAlpha(i));
+            plot(axHandle,phenotypes{i},'FaceColor',clrs(i,:),'FaceAlpha',faceAlpha(i),'EdgeAlpha',faceAlpha(i));
         elseif ~isempty(clrs)
-            plot(axHandle,pgon{i},'FaceColor',clrs(1,:),'FaceAlpha',faceAlpha(i),'EdgeAlpha',faceAlpha(i));
+            plot(axHandle,phenotypes{i},'FaceColor',clrs(1,:),'FaceAlpha',faceAlpha(i),'EdgeAlpha',faceAlpha(i));
         else
-            plot(axHandle,pgon{i},'FaceAlpha',faceAlpha(i),'EdgeAlpha',faceAlpha(i));
+            plot(axHandle,phenotypes{i},'FaceAlpha',faceAlpha(i),'EdgeAlpha',faceAlpha(i));
         end
         axHandle.Children(1).UserData.ID = i;
     end

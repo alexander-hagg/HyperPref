@@ -3,140 +3,60 @@ clear;
 addpath(genpath(pwd))                           % Set path to all modules
 DOF = 16;                                       % Degrees of freedom, Catmull-Rom spline domain
 d = domain(DOF);                                % Domain configuration
-latentDomain = d; latentDomain.dof = 2; latentDomain.ranges = [-3 3; -3 3];
-
-p = defaultParamSet;                            % Base Quality Diversity (QD) configuration (MAP-Elites)
-m = cfgLatentModel('data/workdir',d.resolution);% VAE configuration
-pm = poemParamSet(p,m);                         % Configure POEM ("Phenotypic niching based Optimization by Evolving a Manifold")
-pm.categorize = @(geno,pheno,p,d) predictFeatures(pheno,p.model);  % Anonymous function ptr to phenotypic categorization function (= VAE)
 FITNESSFUNCTION = 'bmpSymmetry'; rmpath(genpath('domain/catmullRom/fitnessFunctions')); addpath(genpath(['domain/catmullRom/fitnessFunctions/' FITNESSFUNCTION]));
+numinitSamples = 256;
+baseFilename = ['catmullRom_III'];
 
-fileName = ['catmullRom_III'];
-%% Initialize Experiment
-% Initialize solution set using space filling Sobol sequence in genetic space
-sobSequence = scramble(sobolset(d.dof,'Skip',1e3),'MatousekAffineOwen');  sobPoint = 1;
-initSamples = range(d.ranges').*sobSequence(sobPoint:(sobPoint+pm.map.numInitSamples)-1,:)+d.ranges(:,1)';
-[fitness,phenotypes,rawFitness] = fitfun(initSamples,d);
+latentDOFs = [2,4,8,16,32];
+dimRange = [-3, 3];
 
-%% Run POEM on parameter space with latent space niching
-[map{1}, config{1}, results{1}] = poem(initSamples,pm,d);
-save([fileName '_step1.mat']);
-disp('Finished POEM on parameter space');
+ALGORITHM = 'voronoi'; rmpath('QD/mapelites'); rmpath('QD/voronoi'); addpath(['QD/' ALGORITHM]);
 
-
-%% Run POEM on latent space with latent space niching
-[initLatentSamples ,xPred,xTrue]= getPrediction(phenotypes,results{1}.models(1));
-latentDomain.getPhenotype = @(latentCoords)sampleVAE(latentCoords,results{1}.models(1).decoderNet);
-[map{2}, config{2}, results{2}] = poem(initLatentSamples,pm,latentDomain,results{1}.models(1));
-save([fileName '_step2.mat']);
-
-% TODO does not work with latent dimensions other than 2
-
-
-%% Run POEM on parameter space with latent space niching
-initSamples2 = reshape(map{1}.genes,[],d.dof);
-initSamples2 = initSamples2(all(~isnan(initSamples2)'),:);
-[map{3}, config{3}, results{3}] = poem(initSamples2,pm,d);
-save([fileName '_step3.mat']);
-disp('Finished POEM on parameter space');
-
-
-%% Run POEM on latent space with latent space niching
-initLatentSamples2 = getPrediction(phenotypes,results{3}.models(1));
-latentDomain.getPhenotype = @(latentCoords)sampleVAE(latentCoords,results{3}.models(1).decoderNet);
-[map{4}, config{4}, results{4}] = poem(initLatentSamples2,pm,latentDomain,results{3}.models(1));
-save([fileName '_step4.mat']);
-
-%% Run POEM on parameter space with latent space niching
-initSamples3 = reshape(map{3}.genes,[],d.dof);
-initSamples3 = initSamples3(all(~isnan(initSamples3)'),:);
-[map{5}, config{5}, results{5}] = poem(initSamples3,pm,d);
-save([fileName '_step5.mat']);
-disp('Finished POEM on parameter space');
-
-%% Run POEM on latent space with latent space niching
-initLatentSamples3 = getPrediction(phenotypes,results{5}.models(1));
-latentDomain.getPhenotype = @(latentCoords)sampleVAE(latentCoords,results{5}.models(1).decoderNet);
-[map{6}, config{6}, results{6}] = poem(initLatentSamples3,pm,latentDomain,results{5}.models(1));
-save([fileName '_step6.mat']);
-
-%% Visualize
-for i=1:3
-    % Show feature map - search: parameter space
-    fig((i-1)*4+1) = figure((i-1)*4+1); viewMap(map{(i-1)*2+1},d)
-    
-    % Show feature map - search: latent space
-    fig((i-1)*4+2) = figure((i-1)*4+2); viewMap(map{(i-1)*2+2},latentDomain)
-    
-    % Show shapes - search: parameter space
-    genes = reshape(map{(i-1)*2+1}.genes,[],d.dof); genes = genes(all(~isnan(genes)'),:);
-    placement = reshape(map{(i-1)*2+1}.features,[],2); placement = placement(all(~isnan(placement)'),:);
-    fig((i-1)*4+3) = figure((i-1)*4+3);
-    showPhenotypeBMP(genes,d,fig((i-1)*4+3),placement);
-    
-    % Show shapes - search: latent space
-    genes = reshape(map{(i-1)*2+2}.genes,[],latentDomain.dof); genes = genes(all(~isnan(genes)'),:);
-    placement = reshape(map{(i-1)*2+2}.features,[],2); placement = placement(all(~isnan(placement)'),:);
-    input = []; input(1,1,:,:) = genes'; input = dlarray(input,'SSCB');
-    modelOutput = sigmoid(predict(results{(i-1)*2+1}.models(1).decoderNet, input));
-    modelOutput = gather(extractdata(modelOutput));    %reproduced
-    clear bitmaps;
-    for j=1:size(modelOutput,4)
-        bitmaps{j} = squeeze(modelOutput(:,:,1,j));
+%% Run experiments, varying latent DOF
+for replicate=1:10
+    fileName = [baseFilename '_replicate_' int2str(replicate)];
+    for rep=1:length(latentDOFs)
+        %% Initialize solution set using space filling Sobol sequence in genetic space
+        sobSequence = scramble(sobolset(d.dof,'Skip',1e3),'MatousekAffineOwen');  sobPoint = (replicate-1)*numinitSamples;
+        initSamples{rep,1} = range(d.ranges').*sobSequence(sobPoint:(sobPoint+numinitSamples)-1,:)+d.ranges(:,1)';
+        [fitness,initPhenotypes{rep,1}] = fitfun(initSamples{rep,1},d);
+        
+        p = defaultParamSet(latentDOFs(rep));                            % Base Quality Diversity (QD) configuration (MAP-Elites)
+        
+        % Run POEM on parameter space with latent space niching
+        m = cfgLatentModel('data/workdir',d.resolution,latentDOFs(rep));                    % VAE configuration
+        pm = poemParamSet(p,m);                                             % Configure POEM ("Phenotypic niching based Optimization by Evolving a Manifold")
+        pm.map.numinitSamples = numinitSamples;
+        pm.categorize = @(geno,pheno,p,d) predictFeatures(pheno,p.model);   % Anonymous function ptr to phenotypic categorization function (= VAE)
+        
+        [map{rep,1}, config{rep,1}, results{rep,1}] = poem(initSamples{rep,1},pm,d);
+        save([fileName '.mat']);
+        disp('Finished POEM on parameter space (III)');
+        
+        % Run POEM on latent space with latent space niching
+        latentDomain = d; latentDomain.dof = latentDOFs(rep); latentDomain.ranges = repmat(dimRange,latentDOFs(rep),1);
+        initSamples{rep,2} = getPrediction(initPhenotypes{rep,1}, results{rep,1}.models(1));
+        latentDomain.getPhenotype = @(latentCoords)sampleVAE(latentCoords,results{rep,1}.models(1).decoderNet);
+        [map{rep,2}, config{rep,2}, results{rep,2}] = poem(initSamples{rep,2},pm,latentDomain,results{rep,1}.models(1));
+        save([fileName '.mat']);
+        disp('Finished POEM on latent space (III)');
+        
+        % Run POEM on parameter space with latent space niching with updated model
+        initSamples{rep,3} = reshape(map{rep,1}.genes,[],d.dof);
+        initSamples{rep,3} = initSamples{rep,3}(all(~isnan(initSamples{rep,3})'),:);
+        [fitness,initPhenotypes{rep,3}] = fitfun(initSamples{rep,3},d);
+        [map{rep,3}, config{rep,3}, results{rep,3}] = poem(initSamples{rep,3},pm,d);
+        save([fileName '.mat']);
+        disp('Finished POEM on parameter space (IV)');
+        
+        
+        % Run POEM on latent space with latent space niching with updated model
+        initSamples{rep,4} = getPrediction(initPhenotypes{rep,3},results{rep,3}.models(1));
+        latentDomain.getPhenotype = @(latentCoords)sampleVAE(latentCoords,results{rep,3}.models(1).decoderNet);
+        [map{rep,4}, config{rep,4}, results{rep,4}] = poem(initSamples{rep,4},pm,latentDomain,results{rep,3}.models(1));
+        save([fileName '.mat']);
+        disp('Finished POEM on latent space (IV)');
     end
-    fig((i-1)*4+4) = figure((i-1)*4+4);
-    showPhenotypeBMP(bitmaps,d,fig((i-1)*4+4),placement);
 end
 
 
-BMIN = 0.5; BMAX = 1; YMAX = 80;
-fig(end+1) = figure;
-for i=1:6
-subplot(3,2,i);
-histogram(map{i}.fitness(:),20,'BinLimits',[BMIN,BMAX],'Normalization','count')
-ax = gca;ax.YLim = [0 YMAX];grid on;title('fitness');
-end
-
-%%
-save_figures(fig, '.', 'IDNODNIII', 12, [5 5])
-
-
-%%
-genes = reshape(map{1}.genes,[],d.dof); genes = genes(all(~isnan(genes)'),:);
-[~,flatbitmaps] = d.getPhenotype(genes);
-[score(1),distMetric] = metricPD(flatbitmaps, 'hamming');
-
-genes = reshape(map{2}.genes,[],latentDomain.dof); genes = genes(all(~isnan(genes)'),:);
-[bitmaps] = latentDomain.getPhenotype(genes);
-flatbitmaps = [];
-for i=1:length(bitmaps)
-    flatbitmaps(i,:) = imbinarize(bitmaps{i}(:),0.9);
-end
-[score(2),distMetric] = metricPD(flatbitmaps, 'hamming');
-
-
-genes = reshape(map{3}.genes,[],d.dof); genes = genes(all(~isnan(genes)'),:);
-[~,flatbitmaps] = d.getPhenotype(genes);
-[score(3),distMetric] = metricPD(flatbitmaps, 'hamming');
-
-genes = reshape(map{4}.genes,[],latentDomain.dof); genes = genes(all(~isnan(genes)'),:);
-[bitmaps] = latentDomain.getPhenotype(genes);
-flatbitmaps = [];
-for i=1:length(bitmaps)
-    flatbitmaps(i,:) = imbinarize(bitmaps{i}(:),0.9);
-end
-[score(4),distMetric] = metricPD(flatbitmaps, 'hamming');
-
-genes = reshape(map{5}.genes,[],d.dof); genes = genes(all(~isnan(genes)'),:);
-[~,flatbitmaps] = d.getPhenotype(genes);
-[score(5),distMetric] = metricPD(flatbitmaps, 'hamming');
-
-genes = reshape(map{6}.genes,[],latentDomain.dof); genes = genes(all(~isnan(genes)'),:);
-[bitmaps] = latentDomain.getPhenotype(genes);
-flatbitmaps = [];
-for i=1:length(bitmaps)
-    flatbitmaps(i,:) = imbinarize(bitmaps{i}(:),0.9);
-end
-[score(6),distMetric] = metricPD(flatbitmaps, 'hamming');
-
-score

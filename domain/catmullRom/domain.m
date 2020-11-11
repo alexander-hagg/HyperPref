@@ -52,6 +52,7 @@ d.featureLabels                     = {'VAE 1','VAE 2'};
 %% Fitness function (generic symmetry of shapes)
 d.fitnessRange                      = [0 1];
 FITNESSFUNCTION                     = 'symmetry';  rmpath(genpath('domain/catmullRom/fitnessFunctions')); addpath(genpath(['domain/catmullRom/fitnessFunctions/' FITNESSFUNCTION]));
+d.fitfun                            = @(genomes,d) fitfun(genomes,d);
 d.selectPenalty                     = 'relativeDistanceOnlyPenalizeConstraintViolation';
 
 %------------- END CODE --------------
