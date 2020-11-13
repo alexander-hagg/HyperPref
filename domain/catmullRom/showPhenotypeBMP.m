@@ -61,15 +61,7 @@ bitmap = logical(zeros(placeRange+d.resolution,placeRange+d.resolution));
 for i=1:nShapes
     if ~isempty(bitmaps{i})
         pl = placement(i,:);
-        if ~islogical(bitmaps{i})
-            bitmaps{i} = imbinarize(bitmaps{i},0.9);   
-            
-            CC = bwconncomp(bitmaps{i});
-            numPixels = cellfun(@numel,CC.PixelIdxList);
-            [~,idx] = max(numPixels);
-            bitmaps{i} = zeros(size(bitmaps{i}));
-            bitmaps{i}(CC.PixelIdxList{idx}) = 1;
-        end
+        if ~islogical(bitmaps{i}); bitmaps{i} = repairVAEoutput(bitmaps{i}); end
         bitmap(pl(1):pl(1)+d.resolution-1,pl(2):pl(2)+d.resolution-1) = bitmap(pl(1):pl(1)+d.resolution-1,pl(2):pl(2)+d.resolution-1) + bitmaps{i};        
     end
 end

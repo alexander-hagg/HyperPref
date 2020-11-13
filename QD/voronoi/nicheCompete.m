@@ -31,7 +31,6 @@ percImprovement = nan;
 mapMembers = 1:size(map.features,1);
 newMembers = size(map.features,1)+(1:size(features,1));
 allMembers = [mapMembers,newMembers];
-allFeatures = [map.features;features];
 distances = pdist2([map.features;features],[map.features;features]);
 distances(logical(eye(size(distances,1)))) = nan; % Prevent comparisons of a candidate with itself
 

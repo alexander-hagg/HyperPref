@@ -15,10 +15,10 @@ function p = defaultParamSet(varargin)
 %
 %------------- BEGIN CODE --------------
 
-p.nGens                     = 2^11;          % number of generations
+p.nGens                     = 2^10;          % number of generations
 p.nChildren                 = 2^5;          % number of children per generation
 p.mutSigma                  = 0.1;          % mutation drawn from Gaussian distribution with this \sigma
-p.maxBins                   = 256;    
+p.maxBins                   = 128;    
 
 p.extraMapValues            = {};%{'uncertainty'};
 

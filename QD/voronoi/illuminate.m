@@ -43,6 +43,8 @@ while (iGen <= p.nGens)
     end
     children = children(1:p.nChildren,:);    
     [fitness, phenotypes] = d.fitfun(children,d); 
+    % Ignore nan fitness
+    nanfitness = isnan(fitness); children(nanfitness,:) = []; fitness(nanfitness,:) = []; phenotypes(nanfitness) = [];
     
     %% Add Children to Map
     features = p.categorize(children,phenotypes,p,d);

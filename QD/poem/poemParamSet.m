@@ -3,7 +3,7 @@ function config = poemParamSet(mapDefaults,AEDefaults)
 
 config.map                           = mapDefaults;
 config.model                         = AEDefaults;
-config.map.numInitSamples            = 256;
+config.map.numInitSamples            = 128;
 
 config.mutSelection                  = 0.1;
 config.retryInvalid                  = true;
