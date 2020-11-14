@@ -13,7 +13,7 @@ shapeParams(2,:) = [0.95 0.4 0.95 0.4 0.95 0.4 0.95 0.4 0.25 -0.25 0.25 -0.25 0.
 shapeParams(3,:) = [0.95 0.6 0.95 0.6 0.95 0.6 0.95 0.6 zeros(1,8)];
 shapeParams(4,:) = [0.25 0.3 0.95 0.3 0.25 0.3 0.95 0.3 zeros(1,8)];
 shapeParams(5,:) = [0.2 0.9 0.95 0.9 0.2 0.9 0.95 0.9 zeros(1,8)];
-fig(1) = figure(1); showPhenotypeBMP(reshape(shapeParams,[],16),d,fig(1))
+%fig(1) = figure(1); showPhenotypeBMP(reshape(shapeParams,[],16),d,fig(1))
 
 %% Set shape variation parameters
 numShapes = 16; scaling = [0.1 1.0]; rotation = [0 0.5*pi];
@@ -28,11 +28,11 @@ selectedShapes{3} = selectedShapes{1}(~des,:);
 des = ismember(selectedShapes{1}(:,1),[numShapes-2,numShapes-1,numShapes]);
 selectedShapes{4} = selectedShapes{1}(~des,:);
 
-fig(2) = figure(2); hold off;
-scatter(selectedShapes{1}(:,1),selectedShapes{1}(:,2),32,'k','filled');hold on;
-scatter(selectedShapes{2}(:,1)+0.1,selectedShapes{2}(:,2)+0.1,32,'r','filled');hold on;
-scatter(selectedShapes{3}(:,1)-0.1,selectedShapes{3}(:,2)-0.1,32,'g','filled');hold on;
-scatter(selectedShapes{4}(:,1)-0.1,selectedShapes{4}(:,2)+0.1,32,'b','filled');hold on;
+%fig(2) = figure(2); hold off;
+%scatter(selectedShapes{1}(:,1),selectedShapes{1}(:,2),32,'k','filled');hold on;
+%scatter(selectedShapes{2}(:,1)+0.1,selectedShapes{2}(:,2)+0.1,32,'r','filled');hold on;
+%scatter(selectedShapes{3}(:,1)-0.1,selectedShapes{3}(:,2)-0.1,32,'g','filled');hold on;
+%scatter(selectedShapes{4}(:,1)-0.1,selectedShapes{4}(:,2)+0.1,32,'b','filled');hold on;
 
 
 clear allGenomes phenotypes allModels
@@ -43,7 +43,9 @@ for rep=1:length(latentDOFs)
     % VAE configuration
     numLatentDims = latentDOFs(rep);
     m = cfgLatentModel('data/workdir',d.resolution, numLatentDims);
-
+    %decoderLG = m.decoderLG
+    %encoderLG = m.encoderLG
+    %%
     for shapeID=1:size(shapeParams,1)
         disp(['Shape ID: ' int2str(shapeID)]);
         % Create shapes variations

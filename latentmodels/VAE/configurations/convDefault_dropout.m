@@ -1,4 +1,4 @@
-function vae = convDefault2(latentDim,resolution,numFilters,filterSize,stride)
+function vae = convDefault_dropout(latentDim,resolution,numFilters,filterSize,stride)
 %CONFIGUREVAE VAE is configured as in 
 % Burgess, C. P., Higgins, I., Pal, A., Matthey, L., Watters, N., Desjardins, G., & Lerchner, A. (2017). 
 % Understanding disentangling in ? -VAE

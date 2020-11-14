@@ -12,7 +12,7 @@ lossFunction                  = 'beta_annealing'; % OPTIONS: 'tcbeta' 'beta' 'be
 disp(['VAE with loss function: ' lossFunction]);
 rmpath(genpath('latentmodels/VAE/lossFunctions')); addpath(genpath(['latentmodels/VAE/lossFunctions/loss_' lossFunction]));
 mkdir(workDir);
-structure                           = 'convDefault_nodropout_larger'; %convDefault_dropout convDefault_nodropout convDefault_nodropout_larger
+structure                           = 'convDefault_nodropout3'; %convDefault_dropout convDefault_nodropout convDefault_matlabbook
 
 configuration.latentDim             = 2;
 if nargin > 2
@@ -36,7 +36,7 @@ if nargin > 4
     disp(['configuration.filterSize: ' int2str(configuration.filterSize)]);
 end
 
-configuration.stride                        = 2;
+configuration.stride                        = 4;
 if nargin > 5
     configuration.stride = varargin{4};
     disp(['configuration.stride: ' int2str(configuration.stride)]);

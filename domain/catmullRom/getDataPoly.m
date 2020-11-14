@@ -1,4 +1,4 @@
-function data = getDataPoly(phenotypes,imgDir,resolution,trainPerc)
+function [data,imds] = getDataPoly(phenotypes,imgDir,resolution,trainPerc)
 %GETDATAPOLY Summary of this function goes here
 %   Detailed explanation goes here
 system(['rm -rf ' imgDir '/*']);
