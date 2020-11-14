@@ -9,28 +9,23 @@ weightsInitializer = 'glorot'; %he narrow-normal glorot
 
 vae.encoderLG = layerGraph([
     imageInputLayer(imageSize,'Name','input_encoder','Normalization','none')
-    convolution2dLayer(filterSize, numFilters, 'Padding','same', 'Stride', stride, 'Name', 'conv1', 'WeightsInitializer', weightsInitializer)
+    convolution2dLayer(filterSize, numFilters/8, 'Padding','same', 'Stride', stride, 'Name', 'conv1', 'WeightsInitializer', weightsInitializer)
     reluLayer('Name','relu01')
-    maxPooling2dLayer(2,'Stride',2,'Name','maxpool1')
-    convolution2dLayer(filterSize, numFilters, 'Padding','same', 'Stride', stride, 'Name', 'conv2', 'WeightsInitializer', weightsInitializer)
+    convolution2dLayer(filterSize, numFilters/4, 'Padding','same', 'Stride', stride, 'Name', 'conv2', 'WeightsInitializer', weightsInitializer)
     reluLayer('Name','relu02')
-    maxPooling2dLayer(2,'Stride',2,'Name','maxpool2')
     convolution2dLayer(filterSize, numFilters, 'Padding','same', 'Stride', stride, 'Name', 'conv3', 'WeightsInitializer', weightsInitializer)
     reluLayer('Name','relu03')
-    maxPooling2dLayer(2,'Stride',2,'Name','maxpool3')
     fullyConnectedLayer(2 * latentDim, 'Name', 'fc_encoder', 'WeightsInitializer', weightsInitializer)
     ]);
 
 vae.decoderLG = layerGraph([
     imageInputLayer([1 1 latentDim],'Name','i','Normalization','none')
-    transposedConv2dLayer(resolution/(stride*stride), numFilters, 'Cropping', 'same', 'Stride', resolution/(stride*stride), 'Name', 'transpose1', 'WeightsInitializer', weightsInitializer)
+    transposedConv2dLayer(filterSize, numFilters, 'Cropping', 'same', 'Stride', stride, 'Name', 'transpose1', 'WeightsInitializer', weightsInitializer)
     reluLayer('Name','relu11')
-    transposedConv2dLayer(filterSize, numFilters, 'Cropping', 'same', 'Stride', stride, 'Name', 'transpose2', 'WeightsInitializer', weightsInitializer)
+    transposedConv2dLayer(filterSize, numFilters/4, 'Cropping', 'same', 'Stride', stride, 'Name', 'transpose2', 'WeightsInitializer', weightsInitializer)
     reluLayer('Name','relu12')
-    transposedConv2dLayer(filterSize, numFilters, 'Cropping', 'same', 'Stride', stride, 'Name', 'transpose3', 'WeightsInitializer', weightsInitializer)
+    transposedConv2dLayer(filterSize, numFilters/8, 'Cropping', 'same', 'Stride', stride, 'Name', 'transpose3', 'WeightsInitializer', weightsInitializer)
     reluLayer('Name','relu13')
-    %transposedConv2dLayer(filterSize, numFilters, 'Cropping', 'same', 'Stride', stride, 'Name', 'transpose4', 'WeightsInitializer', weightsInitializer)
-    %reluLayer('Name','relu14')
     transposedConv2dLayer(filterSize, 1, 'Cropping', 'same', 'Name', 'transpose5', 'WeightsInitializer', weightsInitializer)
     ]);
 

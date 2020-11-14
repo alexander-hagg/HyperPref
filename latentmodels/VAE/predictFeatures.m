@@ -6,7 +6,7 @@ features = getPrediction(phenotypes,model);
 %    features = features*model.pcaCoeff;
 %end
 
-normfeatures = mapminmax('apply',features',model.normalization);
+normfeatures = mapminmax('apply',features',model.latentNorm);
 normfeatures = double(normfeatures');
 
 

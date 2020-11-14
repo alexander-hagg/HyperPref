@@ -4,16 +4,17 @@ addpath(genpath(pwd))                           % Set path to all modules
 DOF = 16;                                       % Degrees of freedom, Catmull-Rom spline domain
 d = domain(DOF);                                % Domain configuration
 FITNESSFUNCTION = 'bmpSymmetry'; rmpath(genpath('domain/catmullRom/fitnessFunctions')); addpath(genpath(['domain/catmullRom/fitnessFunctions/' FITNESSFUNCTION]));
-numInitSamples = 128;
-baseFilename = ['catmullRom_III'];
+numInitSamples = 512;
+baseFilename = ['catmullRom_IIIb'];
 
-latentDOFs = [2,4,8,16];
+%latentDOFs = [16 32 64];
+latentDOFs = [16];
 dimRange = [-3, 3];
 
 ALGORITHM = 'voronoi'; rmpath('QD/mapelites'); rmpath('QD/voronoi'); addpath(['QD/' ALGORITHM]);
 
 %% Run experiments, varying latent DOF
-for replicate=2:5
+for replicate=1:5
     fileName = [baseFilename '_replicate_' int2str(replicate)];
     clear map config results latentDomain initSamples m pm p initPhenotypes sobSequence;
     for rep=1:length(latentDOFs)
@@ -28,6 +29,7 @@ for replicate=2:5
         m = cfgLatentModel('data/workdir',d.resolution,latentDOFs(rep));                    % VAE configuration
         pm = poemParamSet(p,m);                                             % Configure POEM ("Phenotypic niching based Optimization by Evolving a Manifold")
         pm.map.numInitSamples = numInitSamples;
+        pm.map.maxBins = numInitSamples;
         pm.categorize = @(geno,pheno,p,d) predictFeatures(pheno,p.model);   % Anonymous function ptr to phenotypic categorization function (= VAE)
         
         [map{rep,1}, config{rep,1}, results{rep,1}] = poem(initSamples{rep,1},pm,d);

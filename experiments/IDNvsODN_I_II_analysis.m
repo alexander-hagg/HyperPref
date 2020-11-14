@@ -3,7 +3,7 @@ clear;
 addpath(genpath(pwd))                           % Set path to all modules
 DOF = 16;                                       % Degrees of freedom, Catmull-Rom spline domain
 d = domain(DOF);                                % Domain configuration
-fileName = ['catmullRom_I-II_replicates_all'];
+fileName = ['catmullRom_Ic_dof_4'];
 
 load([fileName]);
 
@@ -15,7 +15,7 @@ showPhenotypeBMP(flipud(shapeParams),d,fig(1));
 
 %% Visualize shape sets
 % Set positions of shapes
-for shapeID=2:2%1:size(shapeParams,1)
+for shapeID=1:size(shapeParams,1)
     
     for i=1:4
         % Adjust placement to missing shapes
@@ -36,9 +36,59 @@ for rep=1:length(latentDOFs)
         end
     end
 end
-%figure(1);hold off; semilogy(losses');legend('A','B','C');xlabel('Epochs');ylabel('Training Loss');
-%figure(2);hold off; semilogy(reconstructionLosses');legend('A','B','C');ylabel('Reconstruction Loss');
-%figure(3);hold off; semilogy(regTerms');legend('A','B','C');ylabel('KL Loss');ax = gca;
+%%
+fig(99) = figure(99);
+subplot(3,2,1);hold off;
+semilogy(prctile(reshape(reconstructionLosses(1,:,:,:),20,size(reconstructionLosses,4)),90));
+hold on;
+semilogy(squeeze(median(reconstructionLosses(1,:,:,:),[1 2 3])));
+semilogy(prctile(reshape(reconstructionLosses(1,:,:,:),20,size(reconstructionLosses,4)),10));
+ax = gca;ax.XTickLabel = ax.XTick*50;ylabel('Reconstruction Loss Term');xlabel('Epochs');grid on;
+ax.YLim = [10^1 10^4];
+
+subplot(3,2,2);hold off;
+semilogy(prctile(reshape(reconstructionLosses(2,:,:,:),20,size(reconstructionLosses,4)),90));
+hold on;
+semilogy(squeeze(median(reconstructionLosses(2,:,:,:),[1 2 3])));
+semilogy(prctile(reshape(reconstructionLosses(2,:,:,:),20,size(reconstructionLosses,4)),10));
+ax = gca;ax.XTickLabel = ax.XTick*50;ylabel('Reconstruction Loss Term');xlabel('Epochs');grid on;
+ax.YLim = [10^1 10^4];
+
+subplot(3,2,3);hold off;
+semilogy(prctile(reshape(regTerms(1,:,:,:),20,size(reconstructionLosses,4)),90));
+hold on;
+semilogy(squeeze(median(regTerms(1,:,:,:),[1 2 3])));
+semilogy(prctile(reshape(regTerms(1,:,:,:),20,size(reconstructionLosses,4)),10));
+ax = gca;ax.XTickLabel = ax.XTick*50;ylabel('KL Loss Term');xlabel('Epochs');grid on;
+ax.YLim = [10^0 10^2];
+
+subplot(3,2,4);hold off;
+semilogy(prctile(reshape(regTerms(2,:,:,:),20,size(reconstructionLosses,4)),90));
+hold on;
+semilogy(squeeze(median(regTerms(2,:,:,:),[1 2 3])));
+semilogy(prctile(reshape(regTerms(2,:,:,:),20,size(reconstructionLosses,4)),10));
+ax = gca;ax.XTickLabel = ax.XTick*50;ylabel('KL Loss Term');xlabel('Epochs');grid on;
+ax.YLim = [10^0 10^2];
+%
+
+subplot(3,2,5);hold off;
+semilogy(prctile(reshape(losses(1,:,:,:),20,size(reconstructionLosses,4)),90));
+hold on;
+semilogy(squeeze(median(losses(1,:,:,:),[1 2 3])));
+semilogy(prctile(reshape(losses(1,:,:,:),20,size(reconstructionLosses,4)),10));
+ax = gca;ax.XTickLabel = ax.XTick*50;ylabel('Total \beta-Loss Term');xlabel('Epochs');grid on;
+ax.YLim = [10^1 10^4];
+
+subplot(3,2,6);hold off;
+semilogy(prctile(reshape(losses(2,:,:,:),20,size(reconstructionLosses,4)),90));
+hold on;
+semilogy(squeeze(median(losses(2,:,:,:),[1 2 3])));
+semilogy(prctile(reshape(losses(2,:,:,:),20,size(reconstructionLosses,4)),10));
+ax = gca;ax.XTickLabel = ax.XTick*50;ylabel('Total \beta-Loss Term');xlabel('Epochs');grid on;
+ax.YLim = [10^1 10^4];
+
+save_figures(fig, '.', 'IDNODNI-II_losses', 12, [5 5])
+
 
 %% Analysis: sample all models
 % Get samples and training/missing shapes' reconstruction and latent
@@ -67,14 +117,14 @@ for rep=1:length(latentDOFs)
             bitmapCoords{rep,shapeID,i} = 1 + (ceil(d.resolution*normVaryCoords{rep,shapeID,i})-min(ceil(d.resolution*normVaryCoords{rep,shapeID,i}(:))));
             
             % Get reproduced shapes from training data (remove deselected)
-            subSelected = sub2ind([10 10],selectedShapes{i}(:,1),selectedShapes{i}(:,2));
+            subSelected = sub2ind([numShapes numShapes],selectedShapes{i}(:,1),selectedShapes{i}(:,2));
             input = []; input(1,1,:,:) = features{rep,shapeID,i}(subSelected,:)';
             input = dlarray(input,'SSCB');
             genImgTrain{rep,shapeID,i} = sigmoid(predict(allModels{rep,shapeID,i}.decoderNet, input));
             genImgTrain{rep,shapeID,i} = gather(extractdata(genImgTrain{rep,shapeID,i}));    %reproduced
             
             % Get reproduced shapes from missing training data (only deselected)
-            subdeselected=1:100; subdeselected(subSelected) = [];
+            subdeselected=1:numShapes*numShapes; subdeselected(subSelected) = [];
             input = []; input(1,1,:,:) = features{rep,shapeID,i}'; input = input(:,:,:,subdeselected); input = dlarray(input,'SSCB');
             if ~isempty(input)
                 genImgMissing{rep,shapeID,i} = sigmoid(predict(allModels{rep,shapeID,i}.decoderNet, input));
@@ -106,8 +156,8 @@ for rep=1:length(latentDOFs)
             rell0dot1error{rep,shapeID,i,1} = l0dot1error{rep,shapeID,i,1}/(64*64);
             meanl0dot1error(rep,shapeID,i,1) = mean(l0dot1error{rep,shapeID,i,1});
             
-            subSelected = sub2ind([10 10],selectedShapes{i}(:,1),selectedShapes{i}(:,2));
-            subdeselected=1:100; subdeselected(subSelected) = [];
+            subSelected = sub2ind([numShapes numShapes],selectedShapes{i}(:,1),selectedShapes{i}(:,2));
+            subdeselected=1:numShapes*numShapes; subdeselected(subSelected) = [];
             
             % Reconstruction error missing data
             missingphenotypes = phenotypes{shapeID,1};
@@ -116,7 +166,7 @@ for rep=1:length(latentDOFs)
                 for jj=1:length(missingphenotypes)
                     originalPhen = missingphenotypes{jj};
                     reconstructedPhen = genImgMissing{rep,shapeID,i}(:,:,1,jj)>pxThreshold;
-                    figure(1);subplot(2,1,1);imagesc(originalPhen);subplot(2,1,2);imagesc(reconstructedPhen);
+                    %figure(1);subplot(2,1,1);imagesc(originalPhen);subplot(2,1,2);imagesc(reconstructedPhen);
                     hamming{rep,shapeID,i,2}(jj) = sum(xor(originalPhen(:),(reconstructedPhen(:))));
                     l0dot1error{rep,shapeID,i,2}(jj) = pdist2(originalPhen(:)',reconstructedPhen(:)','minkowski',0.1);
                 end
@@ -130,138 +180,113 @@ for rep=1:length(latentDOFs)
     end
 end
 
-%%
-for rep=1:2
+%% display mean reconstruction errors
+for rep=1:length(latentDOFs)
     disp(['mu Rel. Hamming errors: ']); disp(squeeze(mean(meanHammingError(rep,:,:,:),2)));
     disp(['std Rel. Hamming errors: ']); disp(squeeze(std(meanHammingError(rep,:,:,:),[],2)));
     %disp(['mu Rel. L0.1 errors: ']); disp(squeeze(mean(meanl0dot1error(rep,:,:,:),2)));
     %disp(['std Rel. L0.1 errors: ']); disp(squeeze(std(meanl0dot1error(rep,:,:,:),[],2)));
 end
-%%
-for trainset=1:2
-    for iii=1:3
-        fig(100+iii+(trainset-1)*3) = figure(100+iii+(trainset-1)*3);
-        
-        bla = cell2mat(hamming(:,iii,trainset));
-        if trainset==1; histogram(bla(:),0:2:80); end
-        if trainset==2; histogram(bla(:),0:50:2500); end
-        ax = gca;
-        if trainset==1; ax.YAxis.Limits = [0 1200]; end
-        if trainset==2; ax.YAxis.Limits = [0 140]; end
-        drawnow;
-    end
-end
-%%
-save_figures(fig, '.', 'IDNODNI-II_errors', 12, [5 5])
 
-%%
-cell2mat(hamming(:,:,2))
-cell2mat(l0dot1error(:,:,1))
-cell2mat(l0dot1error(:,:,2))
+%% display error boxplots
+allErrors = reshape(relHammingError,[],4,2);
+trainErrors = [];
+trainBoxplotGroup = [];
+for i=1:4
+    trainErrors = [trainErrors; reshape(cell2mat(allErrors(:,i,1)),[],1)];
+    trainErrors = [trainErrors; reshape(cell2mat(allErrors(:,i,2)),[],1)];
+    trainBoxplotGroup = [trainBoxplotGroup; ones(size(reshape(cell2mat(allErrors(:,i,1)),[],1)))];
+    trainBoxplotGroup = [trainBoxplotGroup; ((i-1)*2+2)*ones(size(reshape(cell2mat(allErrors(:,i,2)),[],1)))];
+end
+
+%% boxplots
+fig(end+1) = figure;
+boxplot(trainErrors,trainBoxplotGroup,'PlotStyle','compact','BoxStyle', 'filled');
+% remove outleirs
+h=findobj(gca,'tag','Outliers');
+delete(h)
+ax = gca;
+ax.YAxis.Scale = 'log';
+ax.XTick = [1 2 3 4 5 6 7];
+ax.XTickLabel = {'Training', 'Recombination', 'Interpolation', 'Extrapolation'};
+ax.XTickLabelRotation = 90;
+grid on;
+ylabel('Reconstruction Error');
+
+
 %% RQII Analysis: calculate latent distance of missing shapes to all shapes
 % best:
 % worst:
 %
 nBins = 20;
 BMIN = 0; BMAX = 5; YMAX = 0.4;
-
+distances = []; distanceBoxplotGroup = [];
 for rep=1:length(latentDOFs)
     for shapeID=1:size(shapeParams,1)
+        
         % get distances between shapes in model A
-        distances = pdist2(features{rep,shapeID,1},features{rep,shapeID,1});
-        distances(1:size(distances,1)+1:end) = nan; % Leave out distances from elements to themselves
-        minDistances(rep,shapeID,1,1) = min(distances(:));
+        dd = reshape(pdist2(features{rep,shapeID,1},features{rep,shapeID,1}),1,[]);
+        dd(dd==0) = []; % Leave out distances from elements to themselves
+        distances = [distances, reshape(dd,1,[])];
+        distanceBoxplotGroup = [distanceBoxplotGroup, ones(1,numel(dd))];
         
-        %distances = pdist2(features{rep,shapeID,1},features{rep,shapeID,1});
-        %distances(1:size(distances,1)+1:end) = nan; % Leave out distances from elements to themselves
-        %distances(distances==0) = nan;
-        
-        %fig(end+1) = figure;
-        %figure(8)
-        %subplot(3,3,1);
-        %histogram(distances(:),nBins,'BinLimits',[BMIN,BMAX],'Normalization','probability')
-        %ax = gca;ax.YLim = [0 YMAX];grid on;
-        %title('train-train');
-        
-        % get distances between shapes in model B, C and D
         for i=2:4
-            subSelected = sub2ind([10 10],selectedShapes{i}(:,1),selectedShapes{i}(:,2));
-            subdeselected=1:100; subdeselected(subSelected) = [];
+            subSelected = sub2ind([numShapes numShapes],selectedShapes{i}(:,1),selectedShapes{i}(:,2));
+            subdeselected=1:numShapes*numShapes; subdeselected(subSelected) = [];
             
             trainFeatures = features{rep,shapeID,i}(subSelected,:);% trainFeatures(deselectInd{i},:) = [];
             missingFeatures = features{rep,shapeID,i}(subdeselected,:);
             
-            distances = pdist2(trainFeatures,trainFeatures);
-            distances(1:size(distances,1)+1:end) = nan; % Leave out distances from elements to themselves
-            distances(distances==0) = nan;
-            minDistances(rep,shapeID,i,1) = min(distances(:));
+            % Distance between training shapes in model B-D
+            dd = pdist2(trainFeatures,trainFeatures);
+            dd(dd==0) = []; % Leave out distances from elements to themselves
+            distances = [distances, reshape(dd,1,[])];
+            distanceBoxplotGroup = [distanceBoxplotGroup, ones(1,numel(dd))];
             
-            %fig(end+1) = figure;
-            %subplot(3,3,(i-1)*3+1);
-            %histogram(distances(:),nBins,'BinLimits',[BMIN,BMAX],'Normalization','probability')
-            %ax = gca;ax.YLim = [0 YMAX];grid on;
-            %title('train-train');
+            % Distance between training and missing shapes in model B-D
+            dd = pdist2(missingFeatures,trainFeatures);
+            dd(dd==0) = []; % Leave out distances from elements to themselves
+            distances = [distances, reshape(dd,1,[])];
+            distanceBoxplotGroup = [distanceBoxplotGroup, i*ones(1,numel(dd))];
             
-            distances = pdist2(missingFeatures,missingFeatures);
-            distances(1:size(distances,1)+1:end) = nan; % Leave out distances from elements to themselves
-            distances(distances==0) = nan;
-            minDistances(rep,shapeID,i,2) = min(distances(:));
+            % Distance between missing shapes in model B-D
+            dd = pdist2(missingFeatures,missingFeatures);
+            dd(dd==0) = []; % Leave out distances from elements to themselves
+            distances = [distances, reshape(dd,1,[])];
+            distanceBoxplotGroup = [distanceBoxplotGroup, i*ones(1,numel(dd))];
             
-            %subplot(3,3,(i-1)*3+2);
-            %histogram(distances,nBins,'BinLimits',[BMIN,BMAX],'Normalization','probability')
-            %ax = gca;ax.YLim = [0 YMAX];grid on;
-            %title('missing-missing');
-            
-            distances = pdist2(missingFeatures,trainFeatures);
-            distances(distances==0) = nan;
-            minDistances(rep,shapeID,i,3) = min(distances(:));
-            
-            %subplot(3,3,(i-1)*3+3);
-            %histogram(distances,nBins,'BinLimits',[BMIN,BMAX],'Normalization','probability')
-            %ax = gca;ax.YLim = [0 YMAX];grid on;
-            %title('missing-train');
-            
-            %                 fig(end+1) = figure;
-            %                 hold off;
-            %                 scatter(trainFeatures(:,1),trainFeatures(:,2),32,'b','filled');
-            %                 hold on;
-            %                 scatter(missingFeatures(:,1),missingFeatures(:,2),32,'r','filled');
-            %                 axis equal;
-            %                 ax = gca;
-            %                 ax.XTickLabel = [];
-            %                 ax.YTickLabel = [];
         end
-        %drawnow;
     end
 end
-disp('Latent Dim. 2');
-disp(['Min. latent distances mu: ']);
-squeeze(mean(squeeze(minDistances(1,:,:,:)),1))
-disp(['Min. latent distances std: ']);
-squeeze(std(squeeze(minDistances(1,:,:,:)),1))
 
-disp('Latent Dim. 4');
-disp(['Min. latent distances mu: ']);
-squeeze(mean(squeeze(minDistances(2,:,:,:)),1))
-disp(['Min. latent distances std: ']);
-squeeze(std(squeeze(minDistances(2,:,:,:)),1))
-
-%save_figures(fig, '.', 'IDNODN_Analysis', 12, [7 5])
+%% boxplots
+fig(end+1) = figure;
+boxplot(distances,distanceBoxplotGroup,'PlotStyle','compact','BoxStyle', 'filled');
+% remove outleirs
+h=findobj(gca,'tag','Outliers');
+delete(h)
+ax = gca;
+%ax.YAxis.Scale = 'log';
+ax.XTick = [1 2 3 4 5 6 7];
+ax.XTickLabel = {'Training', 'Recombination', 'Interpolation', 'Extrapolation'};
+ax.XTickLabelRotation = 90;
+grid on;
+ylabel('Latent Distance');
 
 
 %% Visualization of shapes (training and missing) in latent coordinates
 
 useVAEoutputThreshold = false;
-totalResolution = 1024; 
-
-for rep=1:length(latentDOFs)
+totalResolution = 1024;
+titleLabels = {'All Shapes','Recombination','Interpolation','Extrapolation'};
+for rep=2%1:length(latentDOFs)
     
-    for shapeID=2:2%1:size(shapeParams,1)
+    for shapeID=5%1:size(shapeParams,1)
         
         for i=1:4
             %%
-            subSelected = sub2ind([10 10],selectedShapes{i}(:,1),selectedShapes{i}(:,2));
-            subdeselected=1:100; subdeselected(subSelected) = [];
+            subSelected = sub2ind([numShapes numShapes],selectedShapes{i}(:,1),selectedShapes{i}(:,2));
+            subdeselected=1:numShapes*numShapes; subdeselected(subSelected) = [];
             
             % Turn latent coordinates into pixel coordinates
             allFeatures = features{rep,shapeID,i};allFeatures = mapminmax(allFeatures',0,1)';
@@ -297,20 +322,20 @@ for rep=1:length(latentDOFs)
             if useVAEoutputThreshold; img{3} = img{3} > pxThreshold;end
             
             % Create image with ground truth training examples in latent coordinates
-             tImg = img{4};
-             for jj=1:size(allFeatures,1)
-                 I = double(phenotypes{shapeID,1}{jj}); BW = imbinarize(I); [B,L] = bwboundaries(BW,'holes');
-                 shape = zeros(size(phenotypes{shapeID,1}{jj}));
-                 for boundary=1:length(B)
-                     for pix=1:length(B{boundary}(:,1))
-                         shape(B{boundary}(pix,1),B{boundary}(pix,2)) = 1;
-                     end
-                 end
-                 shape = imdilate(shape, strel('disk', 2));
-                 coords = allFeatures(jj,:);
-                 tImg([coords(1):(coords(1)+d.resolution-1)],[coords(2):(coords(2)+d.resolution-1)]) = tImg([coords(1):(coords(1)+d.resolution-1)],[coords(2):(coords(2)+d.resolution-1)]) + shape;
-             end
-             img{4} = tImg > pxThreshold; mask{4} = img{4};
+            tImg = img{4};
+            for jj=1:size(allFeatures,1)
+                I = double(phenotypes{shapeID,1}{jj}); BW = imbinarize(I); [B,L] = bwboundaries(BW,'holes');
+                shape = zeros(size(phenotypes{shapeID,1}{jj}));
+                for boundary=1:length(B)
+                    for pix=1:length(B{boundary}(:,1))
+                        shape(B{boundary}(pix,1),B{boundary}(pix,2)) = 1;
+                    end
+                end
+                shape = imdilate(shape, strel('disk', 1));
+                coords = allFeatures(jj,:);
+                tImg([coords(1):(coords(1)+d.resolution-1)],[coords(2):(coords(2)+d.resolution-1)]) = tImg([coords(1):(coords(1)+d.resolution-1)],[coords(2):(coords(2)+d.resolution-1)]) + shape;
+            end
+            img{4} = tImg > pxThreshold; mask{4} = img{4};
             
             % Show image
             fig(end+1) = figure;
@@ -318,12 +343,13 @@ for rep=1:length(latentDOFs)
             rgbImage2 = cat(3, 1-img{2}, ones(size(img{2})), 1-img{2});
             rgbImage3 = cat(3, ones(size(img{3})), 1-img{3}, 1-img{3});
             rgbImage4 = cat(3, 1-img{4}, 1-img{4}, 1-img{4});
-            C = ones(size(rgbImage1));
+            C = ones(size(rgbImage2));
             %C(repmat(mask{1},1,1,3)) = rgbImage1(repmat(mask{1},1,1,3));
             C(repmat(mask{2},1,1,3)) = rgbImage2(repmat(mask{2},1,1,3));
             C(repmat(mask{3},1,1,3)) = rgbImage3(repmat(mask{3},1,1,3));
             C(repmat(mask{4},1,1,3)) = rgbImage4(repmat(mask{4},1,1,3));
             imshow(C);
+            title(titleLabels{i});
             drawnow
         end
     end

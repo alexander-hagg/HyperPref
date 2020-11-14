@@ -35,12 +35,12 @@ logicalPhenotypes = phenotypes;
 
 for i=1:length(phenotypes)
     if ~islogical(phenotypes{i})
-        if max(phenotypes{i}(:)) < 0.9
-            meanDistanceDiagonals(i) = nan;
-            symmetryFitness(i) = nan;
-            continue;
-        end
-        logicalPhenotypes{i} = imbinarize(phenotypes{i},0.9);
+        %if max(phenotypes{i}(:)) < 0.5
+        %    meanDistanceDiagonals(i) = nan;
+        %    symmetryFitness(i) = nan;
+        %    continue;
+        %end
+        logicalPhenotypes{i} = imbinarize(phenotypes{i},0.9*max(phenotypes{i}(:)));
     end
     [B,L] = bwboundaries(logicalPhenotypes{i},'noholes');
     countlargeBlobs = 0;

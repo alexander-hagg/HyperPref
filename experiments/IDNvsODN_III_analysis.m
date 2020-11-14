@@ -8,7 +8,7 @@ FITNESSFUNCTION = 'bmpSymmetry'; rmpath(genpath('domain/catmullRom/fitnessFuncti
 %% Visualize
 BMIN = 0.5; BMAX = 1; clear counts fitnesses score
 
-for replicate=1:5
+for replicate=1%:5
     disp(['Loading replicate: ' int2str(replicate)]);
     fileName = ['catmullRom_III'];
     load(['' fileName '_replicate_' int2str(replicate) '.mat']);
@@ -55,8 +55,71 @@ for replicate=1:5
         end
         [score(replicate,rep,4)] = metricPD(flatbitmaps, 'hamming');
         
+        losses(replicate,rep,1,:) = [results{rep,1}.models(1).statistics.loss(1) results{rep,1}.models(1).statistics.loss(50:50:end)];
+        reconstructionLosses(replicate,rep,1,:) = [results{rep,1}.models(1).statistics.reconstructionLoss(1) results{rep,1}.models(1).statistics.reconstructionLoss(50:50:end)];
+        regTerms(replicate,rep,1,:) = [results{rep,1}.models(1).statistics.regTerm(1) results{rep,1}.models(1).statistics.regTerm(50:50:end)];
+        
+        losses(replicate,rep,2,:) = [results{rep,3}.models(1).statistics.loss(1) results{rep,3}.models(1).statistics.loss(50:50:end)];
+        reconstructionLosses(replicate,rep,2,:) = [results{rep,3}.models(1).statistics.reconstructionLoss(1) results{rep,3}.models(1).statistics.reconstructionLoss(50:50:end)];
+        regTerms(replicate,rep,2,:) = [results{rep,3}.models(1).statistics.regTerm(1) results{rep,3}.models(1).statistics.regTerm(50:50:end)];
+        
     end
 end
+
+
+%% Losses
+fig(199) = figure(199)
+subplot(3,2,1);hold off;
+semilogy(prctile(reshape(reconstructionLosses(:,:,1,:),20,201),90));
+hold on;
+semilogy(squeeze(median(reconstructionLosses(:,:,1,:),[1 2 3])));
+semilogy(prctile(reshape(reconstructionLosses(:,:,1,:),20,201),10));
+ax = gca;ax.XTick = 0:50:200; ax.XTickLabel = ax.XTick*50;ylabel('Reconstruction Loss Term');xlabel('Epochs');grid on;
+ax.YLim = [10^0 10^4];
+
+subplot(3,2,2);hold off;
+semilogy(prctile(reshape(reconstructionLosses(:,:,2,:),20,201),90));
+hold on;
+semilogy(squeeze(median(reconstructionLosses(:,:,2,:),[1 2 3])));
+semilogy(prctile(reshape(reconstructionLosses(:,:,2,:),20,201),10));
+ax = gca;ax.XTick = 0:50:200; ax.XTickLabel = ax.XTick*50;ylabel('Reconstruction Loss Term');xlabel('Epochs');grid on;
+ax.YLim = [10^0 10^4];
+%
+
+subplot(3,2,3);hold off;
+semilogy(prctile(reshape(regTerms(:,:,1,:),20,201),90));
+hold on;
+semilogy(squeeze(median(regTerms(:,:,1,:),[1 2 3])));
+semilogy(prctile(reshape(regTerms(:,:,1,:),20,201),10));
+ax = gca;ax.XTick = 0:50:200; ax.XTickLabel = ax.XTick*50;ylabel('KL Loss Term');xlabel('Epochs');grid on;
+ax.YLim = [10^0 10^2];
+
+subplot(3,2,4);hold off;
+semilogy(prctile(reshape(regTerms(:,:,2,:),20,201),90));
+hold on;
+semilogy(squeeze(median(regTerms(:,:,2,:),[1 2 3])));
+semilogy(prctile(reshape(regTerms(:,:,2,:),20,201),10));
+ax = gca;ax.XTick = 0:50:200; ax.XTickLabel = ax.XTick*50;ylabel('KL Loss Term');xlabel('Epochs');grid on;
+ax.YLim = [10^0 10^2];
+%
+
+subplot(3,2,5);hold off;
+semilogy(prctile(reshape(losses(:,:,1,:),20,201),90));
+hold on;
+semilogy(squeeze(median(losses(:,:,1,:),[1 2 3])));
+semilogy(prctile(reshape(losses(:,:,1,:),20,201),10));
+ax = gca;ax.XTick = 0:50:200; ax.XTickLabel = ax.XTick*50;ylabel('Total \beta-Loss Term');xlabel('Epochs');grid on;
+ax.YLim = [10^0 10^4];
+
+subplot(3,2,6);hold off;
+semilogy(prctile(reshape(losses(:,:,2,:),20,201),90));
+hold on;
+semilogy(squeeze(median(losses(:,:,2,:),[1 2 3])));
+semilogy(prctile(reshape(losses(:,:,2,:),20,201),10));
+ax = gca;ax.XTick = 0:50:200; ax.XTickLabel = ax.XTick*50;ylabel('Total \beta-Loss Term');xlabel('Epochs');grid on;
+ax.YLim = [10^0 10^4];
+
+save_figures(fig, '.', 'IDNODNIII-losses', 12, [5 5])
 
 %% Histograms
 YMAX = 70;
@@ -102,12 +165,12 @@ ylabel('Avg. Fitness');
 ax=gca;ax.XTick = latentDOFs;
 ax.YAxis.Limits = [0.75 1];
 grid on
-title('Avg. Fitness - does not say much: local optima can have lower fitness');
+title('Avg. Fitness');
 
 save_figures(fig, '.', 'IDNODNIII', 12, [5 5])
 
 %% Show some shapes
-rep = 3;
+rep = 1;
 
 genes = reshape(map{rep,1}.genes,[],d.dof); genes = genes(all(~isnan(genes)'),:);
 fig(5) = figure(5);
@@ -129,6 +192,27 @@ fig(8) = figure(8);
 bitmaps{4} = showPhenotypeBMP(bitmapsVAE,latentDomain{replicate,rep,4},fig(8));
 
 save_figures(fig, '.', ['QDresults_latDim' int2str(latentDOFs(rep)) '_'], 12, [5 5])
+
+%%
+flatbmps = [];
+for i=1:4
+    for j=1:length(bitmaps{i})
+        flatbmps(end+1,:) = bitmaps{i}{j}(:);
+    end
+end
+
+cmap = parula(4);
+tsneCoords = tsne(flatbmps,'Standardize',true,'Perplexity',30,'NumDimensions',3);
+%%
+figure(1);hold off;
+scatter3(tsneCoords(1:256,1),tsneCoords(1:256,2),tsneCoords(1:256,3),32,cmap(1,:),'filled');hold on;
+scatter3(tsneCoords(257:512,1),tsneCoords(257:512,2),tsneCoords(257:512,3),32,cmap(2,:),'filled');hold on;
+legend('rng par','rng lat');
+figure(2);hold off;
+scatter3(tsneCoords(513:768,1),tsneCoords(513:768,2),tsneCoords(513:768,3),32,cmap(3,:),'filled');hold on;
+scatter3(tsneCoords(769:1024,1),tsneCoords(769:1024,2),tsneCoords(769:1024,3),32,cmap(4,:),'filled');hold on;
+legend('2nd par','2nd lat');
+
 
 
 

@@ -12,27 +12,33 @@ lossFunction                  = 'beta_annealing'; % OPTIONS: 'tcbeta' 'beta' 'be
 disp(['VAE with loss function: ' lossFunction]);
 rmpath(genpath('latentmodels/VAE/lossFunctions')); addpath(genpath(['latentmodels/VAE/lossFunctions/loss_' lossFunction]));
 mkdir(workDir);
-structure                           = 'convDefault2';
+structure                           = 'convDefault_nodropout_larger'; %convDefault_dropout convDefault_nodropout convDefault_nodropout_larger
+
 configuration.latentDim             = 2;
 if nargin > 2
     configuration.latentDim = varargin{1};
     disp(['Latent dims: ' int2str(configuration.latentDim)]);
 end
 
-configuration.numFilters                    = 64;
-configuration.trainPerc                     = 1.00;
-configuration.numEpochs                     = 10000;
+configuration.numFilters                    = 64;%64;
+if nargin > 3
+    configuration.numFilters = varargin{2};
+    disp(['# filters: ' int2str(configuration.numFilters)]);
+end
+
+configuration.trainPerc                     = 0.95;
+configuration.numEpochs                     = 2000;
 configuration.maxBatchSize                  = 128;
 configuration.learnRate                     = 1e-3;
-configuration.filterSize                    = 4;
-if nargin > 3
-    configuration.filterSize = varargin{2};
+configuration.filterSize                    = 8;
+if nargin > 4
+    configuration.filterSize = varargin{3};
     disp(['configuration.filterSize: ' int2str(configuration.filterSize)]);
 end
 
 configuration.stride                        = 2;
-if nargin > 4
-    configuration.stride = varargin{3};
+if nargin > 5
+    configuration.stride = varargin{4};
     disp(['configuration.stride: ' int2str(configuration.stride)]);
 end
 

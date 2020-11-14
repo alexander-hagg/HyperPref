@@ -1,8 +1,10 @@
 function filteredIMG = repairVAEoutput(bitmap)
 %REPAIRVAEOUTPUT Summary of this function goes here
 %   Detailed explanation goes here
+threshold = 0.9*max(bitmap(:));
+
 if ~islogical(bitmap)
-    bitmap = imbinarize(bitmap,0.9);
+    bitmap = imbinarize(bitmap,threshold);
 end
 [B,L] = bwboundaries(bitmap,'noholes');
 maxB = size(B{1},1); maxBID = 1;
