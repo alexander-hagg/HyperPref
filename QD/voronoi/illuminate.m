@@ -55,11 +55,24 @@ while (iGen <= p.nGens)
     
     map.stats.fitnessMean(iGen) = nanmean(map.fitness);
     map.stats.fitnessTotal(iGen) = nansum(map.fitness);
+    
     allMaps{iGen} = map;
         
     if ~mod(iGen,25) || iGen==1
         disp([char(9) 'Illumination Generation: ' int2str(iGen) ' - % improved: ' num2str(percImproved(iGen)) ' - % Filled: ' num2str(100*(size(map.genes,1)/p.maxBins))]);        
         disp([char(9) 'Mean Fitness: ' num2str(map.stats.fitnessMean(iGen)) ' - Total Fitness: ' num2str(map.stats.fitnessTotal(iGen))]);        
+        [~,phen] = fitfun(map.genes,d);
+        allPhenotypes = [];
+        for pp=1:length(phen)
+            if ~islogical(phen{pp})
+                allPhenotypes(pp,:) = imbinarize(phen{pp}(:),0.9*max(phen{pp}(:)));
+            else
+                allPhenotypes(pp,:) = phen{pp}(:);
+            end
+        end
+        map.stats.diversity(iGen) = metricPD(allPhenotypes, 'hamming');
+    
+        disp([char(9) 'Pure Diversity: ' num2str(map.stats.diversity(iGen))]);        
     end
     iGen = iGen+1;
     

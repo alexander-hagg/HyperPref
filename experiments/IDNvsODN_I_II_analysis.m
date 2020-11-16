@@ -3,7 +3,7 @@ clear;
 addpath(genpath(pwd))                           % Set path to all modules
 DOF = 16;                                       % Degrees of freedom, Catmull-Rom spline domain
 d = domain(DOF);                                % Domain configuration
-fileName = ['catmullRom_Ic_dof_4'];
+fileName = ['catmullRom_Id_dof_16'];
 
 load([fileName]);
 
@@ -199,6 +199,7 @@ for i=1:4
     trainBoxplotGroup = [trainBoxplotGroup; ((i-1)*2+2)*ones(size(reshape(cell2mat(allErrors(:,i,2)),[],1)))];
 end
 
+
 %% boxplots
 fig(end+1) = figure;
 boxplot(trainErrors,trainBoxplotGroup,'PlotStyle','compact','BoxStyle', 'filled');
@@ -227,6 +228,7 @@ for rep=1:length(latentDOFs)
         % get distances between shapes in model A
         dd = reshape(pdist2(features{rep,shapeID,1},features{rep,shapeID,1}),1,[]);
         dd(dd==0) = []; % Leave out distances from elements to themselves
+        avgDistance(rep,shapeID,1) = mean(dd(:));
         distances = [distances, reshape(dd,1,[])];
         distanceBoxplotGroup = [distanceBoxplotGroup, ones(1,numel(dd))];
         
@@ -240,24 +242,32 @@ for rep=1:length(latentDOFs)
             % Distance between training shapes in model B-D
             dd = pdist2(trainFeatures,trainFeatures);
             dd(dd==0) = []; % Leave out distances from elements to themselves
+            avgDistance(rep,shapeID,2) = mean(dd(:));
+        
             distances = [distances, reshape(dd,1,[])];
             distanceBoxplotGroup = [distanceBoxplotGroup, ones(1,numel(dd))];
             
             % Distance between training and missing shapes in model B-D
             dd = pdist2(missingFeatures,trainFeatures);
             dd(dd==0) = []; % Leave out distances from elements to themselves
+            avgDistance(rep,shapeID,3) = mean(dd(:));
+        
             distances = [distances, reshape(dd,1,[])];
             distanceBoxplotGroup = [distanceBoxplotGroup, i*ones(1,numel(dd))];
             
             % Distance between missing shapes in model B-D
             dd = pdist2(missingFeatures,missingFeatures);
             dd(dd==0) = []; % Leave out distances from elements to themselves
+            avgDistance(rep,shapeID,4) = mean(dd(:));
+        
             distances = [distances, reshape(dd,1,[])];
             distanceBoxplotGroup = [distanceBoxplotGroup, i*ones(1,numel(dd))];
             
         end
     end
 end
+
+
 
 %% boxplots
 fig(end+1) = figure;
@@ -273,6 +283,19 @@ ax.XTickLabelRotation = 90;
 grid on;
 ylabel('Latent Distance');
 
+
+%% Significance tests errors and distances
+% 1 4 6 8
+
+[~,p] = ttest2(trainErrors(trainBoxplotGroup==1),trainErrors(trainBoxplotGroup==4))
+[~,p] = ttest2(trainErrors(trainBoxplotGroup==1),trainErrors(trainBoxplotGroup==6))
+[~,p] = ttest2(trainErrors(trainBoxplotGroup==1),trainErrors(trainBoxplotGroup==8))
+
+% 1 2 3 4
+distances = double(distances);
+[~,p] = ttest2(reshape(avgDistance(:,:,1),[],1),reshape(avgDistance(:,:,2),[],1))
+[~,p] = ttest2(reshape(avgDistance(:,:,1),[],1),reshape(avgDistance(:,:,3),[],1))
+[~,p] = ttest2(reshape(avgDistance(:,:,1),[],1),reshape(avgDistance(:,:,4),[],1))
 
 %% Visualization of shapes (training and missing) in latent coordinates
 

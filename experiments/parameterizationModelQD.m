@@ -15,11 +15,8 @@ load('randomQDmap.mat', 'map')
 observations = map{1}.genes;
 [fitness,phenotypes] = fitfun(observations,d);
         
-clear model losses
-% latentDim  numFilters filterSize stride
-%numFilterss = [32 64 128]
-numFilterss = [16 32 64]
-filterSizes = [2 3 4]
+numFilterss = [64 128 256]
+filterSizes = [4 5 6 7 8]
 for i = 1:length(numFilterss)
     for j = 1:length(filterSizes)
         numFilters = numFilterss(i)
@@ -36,33 +33,33 @@ for i = 1:length(numFilterss)
     for j = 1:length(filterSizes)
         minValLosses(i,j) = model{i,j}.statistics.minValLoss;
         vallosses(i,j,:) = model{i,j}.statistics.loss;
-        trainlosses(i,j,:) = [model{i,j}.statistics.training.loss(1) model{i,j}.statistics.training.loss(50:50:2000)];
+        trainlosses(i,j,:) = [model{i,j}.statistics.training.loss(1) model{i,j}.statistics.training.loss(50:50:length(model{i,j}.statistics.training.loss))];
         minValEpoch(i,j) = model{i,j}.statistics.minValLossEpoch;
     end
 end
 
 figure(1);
-%imagesc(minValLosses)
 hm = heatmap(minValLosses)
 xlabel('filterSizes');
 ylabel('numFilters');
 hm.XDisplayLabels{1} = int2str(filterSizes(1));
 hm.XDisplayLabels{2} = int2str(filterSizes(2));
 hm.XDisplayLabels{3} = int2str(filterSizes(3));
+hm.XDisplayLabels{4} = int2str(filterSizes(4));
+hm.XDisplayLabels{5} = int2str(filterSizes(5));
 hm.YDisplayLabels{1} = int2str(numFilterss(1));
 hm.YDisplayLabels{2} = int2str(numFilterss(2));
 hm.YDisplayLabels{3} = int2str(numFilterss(3));
-%ax = gca;ax.XTick = 1:3;ax.XTickLabel = {filterSizes(:)}ax.YTick = 1:3;ax.YTickLabel = {numFilterss(:)}
 
 %%
 numX = ceil(sqrt(numel(phenotypes)));
 numY = ceil(sqrt(numel(phenotypes)));
 %latentVectors = randn(numX*numY,16); bitmaps = sampleVAE(latentVectors,model{3,3}.decoderNet);
 
-[latent,xPred,xTrue] = getPrediction(phenotypes,model{2,3});
+[latent,xPred,xTrue] = getPrediction(phenotypes,model{3,5});
 
 figure(2);
-for i=1:numel(xTrue)
+for i=1:10:numel(xTrue)
     subplot(1,2,1);
     imagesc(xTrue{i});
     title('true');
@@ -76,8 +73,8 @@ end
 %% show validation losses over the epochs
 figure(3);hold off;
 legendEntrees = {};
-cmap = parula(3);
 linStyles = {'-','--',':'};
+cmap = parula(5);
 pl = [];
 for i = 1:length(numFilterss)
     for j = 1:length(filterSizes)
@@ -95,8 +92,6 @@ title('Validation loss');
 
 figure(4);hold off;
 legendEntrees = {};
-cmap = parula(3);
-linStyles = {'-','--',':'};
 pl = [];
 for i = 1:length(numFilterss)
     for j = 1:length(filterSizes)
@@ -111,3 +106,4 @@ end
 legend(pl,legendEntrees);
 title('Training loss');
 
+% 256 7 won

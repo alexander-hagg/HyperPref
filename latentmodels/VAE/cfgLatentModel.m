@@ -20,17 +20,17 @@ if nargin > 2
     disp(['Latent dims: ' int2str(configuration.latentDim)]);
 end
 
-configuration.numFilters                    = 64;%64;
+configuration.numFilters                    = 256;%64;
 if nargin > 3
     configuration.numFilters = varargin{2};
     disp(['# filters: ' int2str(configuration.numFilters)]);
 end
 
-configuration.trainPerc                     = 0.95;
-configuration.numEpochs                     = 2000;
+configuration.trainPerc                     = 0.9;
+configuration.numEpochs                     = 500;
 configuration.maxBatchSize                  = 128;
 configuration.learnRate                     = 1e-3;
-configuration.filterSize                    = 8;
+configuration.filterSize                    = 7;
 if nargin > 4
     configuration.filterSize = varargin{3};
     disp(['configuration.filterSize: ' int2str(configuration.filterSize)]);
