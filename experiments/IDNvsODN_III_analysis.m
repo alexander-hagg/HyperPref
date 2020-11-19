@@ -220,7 +220,7 @@ end
 % save_figures(fig, '.', 'IDNODNIII', 12, [5 5])
 
 %% Show some shapes
-rep = 3;
+rep = 2;
 
 genes = reshape(map{rep,1}.genes,[],d.dof); genes = genes(all(~isnan(genes)'),:);
 fig(end+1) = figure;
@@ -240,6 +240,29 @@ genes = reshape(map{rep,4}.genes,[],latentDOFs(rep)); genes = genes(all(~isnan(g
 bitmapsVAE = sampleVAE(genes,results{rep,4}.models(1).decoderNet);
 fig(end+1) = figure;
 bitmaps{4} = showPhenotypeBMP(bitmapsVAE,latentDomain{replicate,rep,4},fig(end));
+
+%% Show some shapes with t-SNE
+rep = 2;
+genes1 = map{rep,1}.genes;
+features1 = map{rep,1}.features;
+bitmaps = d.getPhenotype(genes1);
+
+genes2 = map{rep,2}.genes;
+bitmapsVAE = sampleVAE(genes2,results{rep,2}.models(1).decoderNet);
+features2 = map{rep,2}.features;
+
+
+tsneCoords = tsne([features1;features2],'Standardize',true,'Perplexity',20,'NumDimensions',2);
+
+%%
+fig(1) = figure(1);
+showPhenotypeBMP(bitmaps,d,gcf,1+30*ceil(tsneCoords(1:512,:)-min(tsneCoords(:))));
+axis([0 2200 0 2200]);
+
+fig(2) = figure(2);
+showPhenotypeBMP(bitmapsVAE,d,gcf,1+30*ceil(tsneCoords(513:1024,:)-min(tsneCoords(:))));
+axis([0 2200 0 2200]);
+
 
 %%
 save_figures(fig, '.', 'IDNODNIII', 12, [5 5])

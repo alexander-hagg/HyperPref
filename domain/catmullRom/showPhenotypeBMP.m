@@ -55,7 +55,8 @@ else
     bitmaps = d.getPhenotype(input);
 end
 
-placeRange = (d.resolution+max(placement(:))-min(placement(:)));
+%placeRange = d.resolution+max(placement(:))-min(placement(:));
+placeRange = d.resolution+max(placement(:));%-min(placement(:));
 bitmap = logical(zeros(placeRange+d.resolution,placeRange+d.resolution)); 
 %%
 for i=1:nShapes
