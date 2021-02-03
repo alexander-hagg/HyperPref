@@ -10,7 +10,7 @@ FITNESSFUNCTION = 'bmpSymmetry'; rmpath(genpath('domain/catmullRom/fitnessFuncti
 BMIN = 0.5; BMAX = 1; 
 %clear counts fitnesses score
 
-for replicate=1:10
+for replicate=1%:10
     disp(['Loading replicate: ' int2str(replicate)]);
     fileName = ['catmullRom_IIIb'];
     load(['' fileName '_replicate_' int2str(replicate) '.mat'],'config','map','results','dimRange','latentDOFs','latentDomain');
@@ -220,7 +220,7 @@ end
 % save_figures(fig, '.', 'IDNODNIII', 12, [5 5])
 
 %% Show some shapes
-rep = 2;
+rep = 1;
 
 genes = reshape(map{rep,1}.genes,[],d.dof); genes = genes(all(~isnan(genes)'),:);
 fig(end+1) = figure;
@@ -243,6 +243,9 @@ bitmaps{4} = showPhenotypeBMP(bitmapsVAE,latentDomain{replicate,rep,4},fig(end))
 
 %% Show some shapes with t-SNE
 rep = 2;
+fileName = ['catmullRom_IIIb'];
+load(['' fileName '_replicate_' int2str(rep) '.mat'],'config','map','results','dimRange','latentDOFs','latentDomain');
+    
 genes1 = map{rep,1}.genes;
 features1 = map{rep,1}.features;
 bitmaps = d.getPhenotype(genes1);
@@ -252,7 +255,7 @@ bitmapsVAE = sampleVAE(genes2,results{rep,2}.models(1).decoderNet);
 features2 = map{rep,2}.features;
 
 
-tsneCoords = tsne([features1;features2],'Standardize',true,'Perplexity',20,'NumDimensions',2);
+tsneCoords = tsne([features1;features2],'Standardize',true,'Perplexity',20,'NumDimensions',2,'NumPCAComponents',8);
 
 %%
 fig(1) = figure(1);
@@ -270,13 +273,13 @@ save_figures(fig, '.', 'IDNODNIII', 12, [5 5])
 %%
 
 %%
-rep = 3
+rep = 2
 % Get phenotypes from genes from PS
-genes = reshape(map{rep,3}.genes,[],d.dof); genes = genes(all(~isnan(genes)'),:);
+genes = reshape(map{rep,2}.genes,[],d.dof); genes = genes(all(~isnan(genes)'),:);
 bitmapsPS = d.getPhenotype(genes);
 input = [];
-for i=1:length(phens)
-    input(:,:,1,i) = phens{i};
+for i=1:length(bitmapsPS)
+    input(:,:,1,i) = bitmapsPS{i};
 end
 
 input = dlarray(single(input), 'SSCB');
@@ -295,7 +298,7 @@ for i=1:size(modelOut,4)
     [~,reconstructionErrorsPS(i)] = ELBOloss(x, xPred, 0, 0, 0, 1, 1);
 end
 % Get phenotypes from genes from LS
-genes = reshape(map{rep,4}.genes,[],32); genes = genes(all(~isnan(genes)'),:);
+genes = reshape(map{rep,4}.genes,[],16); genes = genes(all(~isnan(genes)'),:);
 bitmapsLS = sampleVAE(genes,results{rep,4}.models(1).decoderNet); 
 for i=1:length(bitmapsLS)
     threshold = 0.9*max(bitmapsLS{i}(:));
@@ -324,7 +327,7 @@ input = gpuArray(input);
 % end
 
 %%
-tsneCoords = tsne([squeeze(gather(extractdata(latentCoordsPS)))';squeeze(gather(extractdata(latentCoordsLS)))'],'Standardize',true,'Perplexity',20,'NumDimensions',2);
+tsneCoords = tsne([squeeze(gather(extractdata(latentCoordsPS)))';squeeze(gather(extractdata(latentCoordsLS)))'],'Standardize',true,'Perplexity',20,'NumDimensions',2,'NumPCAComponents',4);
 
 %%
 nShapes = size(tsneCoords,1)/2;

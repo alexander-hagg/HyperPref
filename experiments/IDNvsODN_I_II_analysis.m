@@ -3,7 +3,7 @@ clear;
 addpath(genpath(pwd))                           % Set path to all modules
 DOF = 16;                                       % Degrees of freedom, Catmull-Rom spline domain
 d = domain(DOF);                                % Domain configuration
-fileName = ['catmullRom_Id_dof_16'];
+fileName = ['catmullRom_Id_dof_8'];
 
 load([fileName]);
 
@@ -312,7 +312,11 @@ for rep=2%1:length(latentDOFs)
             subdeselected=1:numShapes*numShapes; subdeselected(subSelected) = [];
             
             % Turn latent coordinates into pixel coordinates
-            allFeatures = features{rep,shapeID,i};allFeatures = mapminmax(allFeatures',0,1)';
+            allFeatures = features{rep,shapeID,i};
+            
+            tsneCoords = tsne(allFeatures,'Standardize',true,'Perplexity',50,'NumDimensions',2,'NumPCAComponents',8);
+
+            allFeatures = mapminmax(tsneCoords',0,1)';
             allFeatures = 1+ceil(allFeatures*totalResolution);
             trainFeatures = allFeatures(subSelected,:); missingFeatures = allFeatures(subdeselected,:);
             
@@ -379,7 +383,7 @@ for rep=2%1:length(latentDOFs)
 end
 %%
 drawnow;
-save_figures(fig, '.', 'IDNODNI-II', 12, [3 3])
+save_figures(fig, '.', 'IDNODNI-II', 12, [8 8])
 
 
 
