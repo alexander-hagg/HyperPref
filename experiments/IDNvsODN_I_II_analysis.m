@@ -298,11 +298,10 @@ distances = double(distances);
 [~,p] = ttest2(reshape(avgDistance(:,:,1),[],1),reshape(avgDistance(:,:,4),[],1))
 
 %% Visualization of shapes (training and missing) in latent coordinates
-
-useVAEoutputThreshold = false;
+useVAEoutputThreshold = true;
 totalResolution = 1024;
 titleLabels = {'All Shapes','Recombination','Interpolation','Extrapolation'};
-for rep=2%1:length(latentDOFs)
+for rep=1%1:length(latentDOFs)
     
     for shapeID=5%1:size(shapeParams,1)
         
@@ -314,7 +313,7 @@ for rep=2%1:length(latentDOFs)
             % Turn latent coordinates into pixel coordinates
             allFeatures = features{rep,shapeID,i};
             
-            tsneCoords = tsne(allFeatures,'Standardize',true,'Perplexity',50,'NumDimensions',2,'NumPCAComponents',8);
+            tsneCoords = tsne(allFeatures,'Standardize',true,'Perplexity',40,'NumDimensions',2,'NumPCAComponents',size(allFeatures,2));
 
             allFeatures = mapminmax(tsneCoords',0,1)';
             allFeatures = 1+ceil(allFeatures*totalResolution);
@@ -335,7 +334,7 @@ for rep=2%1:length(latentDOFs)
                 coords = trainFeatures(jj,:);
                 img{2}([coords(1):(coords(1)+d.resolution-1)],[coords(2):(coords(2)+d.resolution-1)]) = img{2}([coords(1):(coords(1)+d.resolution-1)],[coords(2):(coords(2)+d.resolution-1)]) + squeeze(genImgTrain{rep,shapeID,i}(:,:,:,jj));
             end
-            mask{2} = img{2}>0;
+            mask{2} = img{2}>pxThreshold;
             if useVAEoutputThreshold; img{2} = img{2} > pxThreshold;end
             
             % Create image with missing training examples in latent coordinates
@@ -345,7 +344,7 @@ for rep=2%1:length(latentDOFs)
                     img{3}([coords(1):(coords(1)+d.resolution-1)],[coords(2):(coords(2)+d.resolution-1)]) = img{3}([coords(1):(coords(1)+d.resolution-1)],[coords(2):(coords(2)+d.resolution-1)]) + squeeze(genImgMissing{rep,shapeID,i}(:,:,:,jj));
                 end
             end
-            mask{3} = img{3}>0;
+            mask{3} = img{3}>pxThreshold;
             if useVAEoutputThreshold; img{3} = img{3} > pxThreshold;end
             
             % Create image with ground truth training examples in latent coordinates
@@ -362,13 +361,13 @@ for rep=2%1:length(latentDOFs)
                 coords = allFeatures(jj,:);
                 tImg([coords(1):(coords(1)+d.resolution-1)],[coords(2):(coords(2)+d.resolution-1)]) = tImg([coords(1):(coords(1)+d.resolution-1)],[coords(2):(coords(2)+d.resolution-1)]) + shape;
             end
-            img{4} = tImg > pxThreshold; mask{4} = img{4};
+            img{4} = tImg > 0; mask{4} = img{4};
             
             % Show image
             fig(end+1) = figure;
             %rgbImage1 = cat(3, 1-img{1}, 1-img{1}, 1-img{1});
-            rgbImage2 = cat(3, 1-img{2}, ones(size(img{2})), 1-img{2});
-            rgbImage3 = cat(3, ones(size(img{3})), 1-img{3}, 1-img{3});
+            rgbImage2 = cat(3, img{2}.*ones(size(img{2})),img{2}.*ones(size(img{2})), img{2}.*1-img{2});
+            rgbImage3 = cat(3, img{3}.*1-img{3}, img{3}.*1-img{3},img{3}.*ones(size(img{3})));
             rgbImage4 = cat(3, 1-img{4}, 1-img{4}, 1-img{4});
             C = ones(size(rgbImage2));
             %C(repmat(mask{1},1,1,3)) = rgbImage1(repmat(mask{1},1,1,3));
